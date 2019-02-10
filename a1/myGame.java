@@ -67,7 +67,6 @@ public class myGame extends VariableFrameRateGame {
 
         SceneNode cameraNode = rootNode.createChildSceneNode(camera.getName() + "Node");
         cameraNode.attachObject(camera);
-
     }
 
     @Override
@@ -79,8 +78,8 @@ public class myGame extends VariableFrameRateGame {
         /*========= Objects to set up planets ==================================================== */
         SceneNode[] planetAmount = new SceneNode[maxPlanets];
         Entity[] planetE = new Entity[maxPlanets];
-        int maxRange = 10;
-        int minRange = 2;
+        int maxDistance = 10;
+        int minDistance = 2;
         /*=======================================================================*/
 
         /*========= Objects to set up changing textures ==================================================== */
@@ -90,13 +89,15 @@ public class myGame extends VariableFrameRateGame {
         TextureState state;
         /*=======================================================================*/
 
-        /*========= DOLPHINE ==================================================== */
+        /*========= DOLPHIN and DOLPHIN CAMERA NODE ==================================================== */
         Entity dolphinE = sm.createEntity("myDolphin", "dolphinHighPoly.obj");
         dolphinE.setPrimitive(Primitive.TRIANGLES);
 
         SceneNode dolphinN = sm.getRootSceneNode().createChildSceneNode(dolphinE.getName() + "Node");
         dolphinN.moveBackward(2.0f);
         dolphinN.attachObject(dolphinE);
+
+        SceneNode dolphineCN = dolphinN.createChildSceneNode("dolphinCameraNode");
         /*=======================================================================*/
 
         /*========= PLANETS ==================================================== */
@@ -108,9 +109,9 @@ public class myGame extends VariableFrameRateGame {
         for (int i = 0; i < maxPlanets; i++){
             float scalePlanetNum = new Random().nextFloat();
             planetAmount[i] = sm.getRootSceneNode().createChildSceneNode(planetE[i].getName() + "Node");
-            planetAmount[i].moveBackward((float)new Random().nextInt((maxRange - minRange) + 1) + minRange);
-            planetAmount[i].moveLeft((float)new Random().nextInt((maxRange - minRange) + 1) + minRange);
-            planetAmount[i].moveRight((float)new Random().nextInt((maxRange - minRange) + 1) + minRange);
+            planetAmount[i].moveBackward((float)new Random().nextInt((maxDistance - minDistance) + 1) + minDistance);
+            planetAmount[i].moveLeft((float)new Random().nextInt((maxDistance - minDistance) + 1) + minDistance);
+            planetAmount[i].moveRight((float)new Random().nextInt((maxDistance - minDistance) + 1) + minDistance);
             planetAmount[i].scale(scalePlanetNum,scalePlanetNum,scalePlanetNum);
             planetAmount[i].attachObject(planetE[i]);
         }
@@ -144,41 +145,49 @@ public class myGame extends VariableFrameRateGame {
 
 
     protected void setupInputs(){
-        im = new GenericInputManager();
-        String kbName = im.getKeyboardName();
-        String gpName = im.getFirstGamepadName();
-        System.out.println(gpName);
-
         // build some action objects for doing things in response to user input
         QuitGameAction quitGameAction = new QuitGameAction(this);
         IncrementCounterAction incrementCounterAction = new IncrementCounterAction(this);
+        CameraChangeView cameraChangeView = new CameraChangeView(this);
+
+        // Creates and sets up inputs.
+        im = new GenericInputManager();
+        String kbName = im.getKeyboardName();
+        System.out.println(kbName);
+        try{
+            String gpName = im.getFirstGamepadName();
+            System.out.println(gpName);
+
+            im.associateAction(gpName,
+                    net.java.games.input.Component.Identifier.Button._9,
+                    quitGameAction,
+                    InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+            im.associateAction(gpName,
+                    net.java.games.input.Component.Identifier.Button._3,
+                    incrementCounterAction,
+                    InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+            im.associateAction(gpName,
+                    net.java.games.input.Component.Identifier.Button._1,
+                    cameraChangeView,
+                    InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+        }
+        catch (Exception e){
+            System.out.println("No Controller Detected");
+        }
 
         // attach the action objects to keyboard and gamepad components
         im.associateAction(kbName,
                 net.java.games.input.Component.Identifier.Key.ESCAPE,
                 quitGameAction,
                 InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
-        im.associateAction(gpName,
-                net.java.games.input.Component.Identifier.Button._9,
-                quitGameAction,
-                InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
-        im.associateAction(gpName,
-                net.java.games.input.Component.Identifier.Button._3,
-                incrementCounterAction,
-                InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
         im.associateAction(kbName,
                 net.java.games.input.Component.Identifier.Key.C,
                 incrementCounterAction,
                 InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
-        im.associateAction(gpName,
-                net.java.games.input.Component.Identifier.Button._1,
-                incrementCounterAction,
-                InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
         im.associateAction(kbName,
                 net.java.games.input.Component.Identifier.Key.V,
-                incrementCounterAction,
+                cameraChangeView,
                 InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
-
     }
 
 
@@ -193,6 +202,16 @@ public class myGame extends VariableFrameRateGame {
         im.update(elapsTime);
         dispStr = "Time = " + elapsTimeStr + "   Keyboard hits = " + counterStr;
         rs.setHUD(dispStr, 15, 15);
+    }
+
+    public void cameraOffDolphin(Camera camera){
+        SceneNode dolphinCamera = getEngine().getSceneManager().getSceneNode("dolphinCameraNode");
+    }
+
+    public void cameraOnDolphin(Camera camera){
+        SceneNode dolphinCamera = getEngine().getSceneManager().getSceneNode("dolphinCameraNode");
+        dolphinCamera.setLocalPosition((Vector3f)Vector3f.createFrom(0.0f, 0.5f, -0.5f));
+        dolphinCamera.attachObject(camera);
     }
 
     public void incrementCounter() {
