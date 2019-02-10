@@ -170,6 +170,14 @@ public class myGame extends VariableFrameRateGame {
                 net.java.games.input.Component.Identifier.Key.C,
                 incrementCounterAction,
                 InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+        im.associateAction(gpName,
+                net.java.games.input.Component.Identifier.Button._1,
+                incrementCounterAction,
+                InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+        im.associateAction(kbName,
+                net.java.games.input.Component.Identifier.Key.V,
+                incrementCounterAction,
+                InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 
     }
 
@@ -185,6 +193,10 @@ public class myGame extends VariableFrameRateGame {
         im.update(elapsTime);
         dispStr = "Time = " + elapsTimeStr + "   Keyboard hits = " + counterStr;
         rs.setHUD(dispStr, 15, 15);
+    }
+
+    public void incrementCounter() {
+        counter++;
     }
 
 //    @Override
@@ -209,7 +221,4 @@ public class myGame extends VariableFrameRateGame {
 //        super.keyPressed(e);
 //    }
 
-    public void incrementCounter() {
-        counter++;
-    }
 }
