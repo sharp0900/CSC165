@@ -93,7 +93,7 @@ public class myGame extends VariableFrameRateGame {
         Entity dolphinE = sm.createEntity("myDolphin", "dolphinHighPoly.obj");
         dolphinE.setPrimitive(Primitive.TRIANGLES);
 
-        SceneNode dolphinN = sm.getRootSceneNode().createChildSceneNode(dolphinE.getName() + "Node");
+        SceneNode dolphinN = sm.getRootSceneNode().createChildSceneNode("dolphinENode");
         dolphinN.moveBackward(2.0f);
         dolphinN.attachObject(dolphinE);
 
@@ -149,6 +149,7 @@ public class myGame extends VariableFrameRateGame {
         QuitGameAction quitGameAction = new QuitGameAction(this);
         IncrementCounterAction incrementCounterAction = new IncrementCounterAction(this);
         CameraChangeView cameraChangeView = new CameraChangeView(this);
+        CameraMoveFoward cameraMoveFoward = new CameraMoveFoward(this);
 
         // Creates and sets up inputs.
         im = new GenericInputManager();
@@ -170,6 +171,10 @@ public class myGame extends VariableFrameRateGame {
                     net.java.games.input.Component.Identifier.Button._1,
                     cameraChangeView,
                     InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+            im.associateAction(gpName,
+                    net.java.games.input.Component.Identifier.Button._2,
+                    cameraMoveFoward,
+                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
         }
         catch (Exception e){
             System.out.println("No Controller Detected");
@@ -205,12 +210,15 @@ public class myGame extends VariableFrameRateGame {
     }
 
     public void cameraOffDolphin(Camera camera){
+        SceneNode mainCamera = getEngine().getSceneManager().getSceneNode("MainCameraNode");
         SceneNode dolphinCamera = getEngine().getSceneManager().getSceneNode("dolphinCameraNode");
+        mainCamera.attachObject(camera);
+        camera.setPo((Vector3f)Vector3f.createFrom(dolphinCamera.getLocalPosition().x() + 0.2f, dolphinCamera.getLocalPosition().y() - 0.5f, dolphinCamera.getLocalPosition().x() + 0.5f));
     }
 
     public void cameraOnDolphin(Camera camera){
         SceneNode dolphinCamera = getEngine().getSceneManager().getSceneNode("dolphinCameraNode");
-        dolphinCamera.setLocalPosition((Vector3f)Vector3f.createFrom(0.0f, 0.5f, -0.5f));
+        dolphinCamera.setLocalPosition(Vector3f.createFrom(0.0f, 0.5f, -0.5f));
         dolphinCamera.attachObject(camera);
     }
 
