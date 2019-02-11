@@ -26,9 +26,13 @@ public class myGame extends VariableFrameRateGame {
     GL4RenderSystem rs;
     GenericInputManager im;
     float elapsTime = 0.0f;
+    boolean stop = false;
     String elapsTimeStr, counterStr, dispStr;
     int elapsTimeSec, counter = 0, maxPlanets = 5;
+
+    // Array to hold planets
     SceneNode[] planetAmount = new SceneNode[maxPlanets];
+    // Array to hold planets that have been visited.
     SceneNode[] planetVisited = new SceneNode[maxPlanets];
 
     public myGame() {
@@ -95,9 +99,8 @@ public class myGame extends VariableFrameRateGame {
         dolphinN.attachObject(dolphinE);
 
         SceneNode dolphinCN = dolphinN.createChildSceneNode("dolphinCameraNode");
-        dolphinCN.setLocalPosition(0.0f, 0.5f, -0.5f);
+        dolphinCN.setLocalPosition(0.0f, 0.5f, -0.3f);
         dolphinCN.attachObject(getEngine().getSceneManager().getCamera("MainCamera"));
-
         /*=======================================================================*/
 
         /*========= PLANETS ==================================================== */
@@ -153,6 +156,9 @@ public class myGame extends VariableFrameRateGame {
         CameraChangeView cameraChangeView = new CameraChangeView(this);
         CameraMoveFowardBack cameraMoveFoward = new CameraMoveFowardBack(this);
         CameraMoveLeftRight cameraMoveLeftRight = new CameraMoveLeftRight(this);
+        CameraTiltLeftRight cameraTiltLeftRight = new CameraTiltLeftRight(this);
+        CameraTiltUpDown cameraTiltUpDown = new CameraTiltUpDown(this);
+        CameraReset cameraReset = new CameraReset(this);
 
         // Creates and sets up inputs.
         im = new GenericInputManager();
@@ -169,7 +175,7 @@ public class myGame extends VariableFrameRateGame {
                     InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
             im.associateAction(gpName,
                     net.java.games.input.Component.Identifier.Button._3,
-                    incrementCounterAction,
+                    cameraReset,
                     InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
             im.associateAction(gpName,
                     net.java.games.input.Component.Identifier.Button._1,
@@ -182,6 +188,14 @@ public class myGame extends VariableFrameRateGame {
             im.associateAction(gpName,
                     Component.Identifier.Axis.X,
                     cameraMoveLeftRight,
+                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+            im.associateAction(gpName,
+                    Component.Identifier.Axis.RX,
+                    cameraTiltLeftRight,
+                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+            im.associateAction(gpName,
+                    Component.Identifier.Axis.RY,
+                    cameraTiltUpDown,
                     InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
         }
         catch (Exception e){
@@ -213,9 +227,17 @@ public class myGame extends VariableFrameRateGame {
         elapsTimeStr = Integer.toString(elapsTimeSec);
         counterStr = Integer.toString(counter);
         im.update(elapsTime);
-        dispStr = "  Visited Planets = " + counterStr;
-        rs.setHUD(dispStr, 15, 15);
+        dispStr = hudContent("  Visited Planets = " + counterStr);
+        rs.setHUD(dispStr, 13, 13);
         checkDistance();
+    }
+
+    private String hudContent(String display){
+        String content = display;
+        if(stop && getEngine().getSceneManager().getCamera("MainCamera").getMode() == 'c'){
+            content = content + "       Too far from dolphin, Press B(Controller) or SpaceBar(Keyboard)." ;
+        }
+        return content;
     }
 
     // ======== This will check the distant between the player and the Dolphin. ===============
@@ -229,9 +251,13 @@ public class myGame extends VariableFrameRateGame {
         distanceX = Math.abs(dolphin.getLocalPosition().x() - cameraPosition.x());
         distanceZ = Math.abs(dolphin.getLocalPosition().z() - cameraPosition.z());
 
-        if (distanceX > distanceLimit || distanceZ > distanceLimit){
+        if (distanceX > distanceLimit && distanceZ > distanceLimit){
             limit = false;
+            stop = true;
+        }else {
+            stop = false;
         }
+
         return limit;
     }
     //==========================================================================================

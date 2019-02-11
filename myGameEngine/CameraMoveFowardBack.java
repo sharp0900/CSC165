@@ -20,7 +20,6 @@ public class CameraMoveFowardBack extends AbstractInputAction{
 
     public void performAction(float time, Event e){
 
-
         if ( e.getValue() <= -0.1){
             if(camera.getMode() == 'c'){
                 if(game.dolphinDistanceLimit()){

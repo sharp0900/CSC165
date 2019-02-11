@@ -12,6 +12,7 @@ public class CameraMoveLeftRight extends AbstractInputAction{
     private Camera camera;
     SceneNode dolphinNode;
 
+
     public CameraMoveLeftRight(myGame g){
         game = g;
         camera = g.getEngine().getSceneManager().getCamera("MainCamera");

@@ -26,7 +26,7 @@ public class CameraChangeView extends AbstractInputAction{
             camera.setMode('n');
         }else {
            camera.setMode('c');
-           camera.setPo((Vector3f) nodeDolphin.getLocalPosition().add(0.0f, 0.0f , 1.0f));
+           camera.setPo((Vector3f) nodeDolphin.getLocalPosition().add(-0.5f, 0.0f , 0.0f));
         }
     }
 }
