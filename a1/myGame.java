@@ -4,6 +4,7 @@ import myGameEngine.*;
 import java.awt.*;
 import java.io.*;
 
+import net.java.games.input.Component;
 import ray.rage.*;
 import ray.rage.game.*;
 import ray.rage.rendersystem.*;
@@ -23,10 +24,12 @@ public class myGame extends VariableFrameRateGame {
 
     // to minimize variable allocation in update()
     GL4RenderSystem rs;
+    GenericInputManager im;
     float elapsTime = 0.0f;
     String elapsTimeStr, counterStr, dispStr;
     int elapsTimeSec, counter = 0, maxPlanets = 5;
-    GenericInputManager im;
+    SceneNode[] planetAmount = new SceneNode[maxPlanets];
+    SceneNode[] planetVisited = new SceneNode[maxPlanets];
 
     public myGame() {
         super();
@@ -71,7 +74,7 @@ public class myGame extends VariableFrameRateGame {
 
 
         /*========= Objects to set up planets ==================================================== */
-        SceneNode[] planetAmount = new SceneNode[maxPlanets];
+
         Entity[] planetE = new Entity[maxPlanets];
         int maxDistance = 10;
         int minDistance = 2;
@@ -177,10 +180,10 @@ public class myGame extends VariableFrameRateGame {
                     net.java.games.input.Component.Identifier.Button._2,
                     cameraMoveFoward,
                     InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-//            im.associateAction(gpName,
-//                    Component.Identifier.Axis.Y,
-//                    cameraMoveFoward,
-//                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+            im.associateAction(gpName,
+                    Component.Identifier.Axis.Y,
+                    cameraMoveFoward,
+                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
         }
         catch (Exception e){
             System.out.println("No Controller Detected");
@@ -211,8 +214,55 @@ public class myGame extends VariableFrameRateGame {
         elapsTimeStr = Integer.toString(elapsTimeSec);
         counterStr = Integer.toString(counter);
         im.update(elapsTime);
-        dispStr = "Time = " + elapsTimeStr + "   Keyboard hits = " + counterStr;
+        dispStr = "Time = " + elapsTimeStr + "   Visited Planets = " + counterStr;
         rs.setHUD(dispStr, 15, 15);
+        checkDistance();
+    }
+
+    public void checkDistance(){
+        Vector3 planetPosition;
+        float planetScale, scaleX, scaleZ, scaleFinal;
+        float north, east, south, west;
+        SceneNode dolphinNode = getEngine().getSceneManager().getSceneNode("dolphinENode");
+
+
+        for (int i = 0; i < maxPlanets; i++){
+            planetPosition = planetAmount[i].getLocalPosition();
+            planetScale = planetAmount[i].getLocalScale().x();
+            scaleZ = Math.abs(planetScale*planetPosition.z());
+            scaleX = Math.abs(planetScale*planetPosition.x());
+
+            if(scaleZ > scaleX){
+                scaleFinal = scaleZ;
+            }else{
+                scaleFinal = scaleX;
+            }
+
+            north = scaleFinal + planetPosition.z();
+            south = planetPosition.z() - scaleFinal;
+            east = scaleFinal + planetPosition.x();
+            west = planetPosition.x() - scaleFinal;
+
+            if(dolphinNode.getLocalPosition().z() < north && dolphinNode.getLocalPosition().z() > south &&
+                    dolphinNode.getLocalPosition().z() < east && dolphinNode.getLocalPosition().z() > west){
+                if (visitYet(planetAmount[i])){
+                    incrementCounter();
+                    System.out.println(planetAmount[i]);
+                    planetVisited[i] = planetAmount[i];
+                }
+            }
+        }
+    }
+
+    public boolean visitYet(SceneNode nodePlanet){
+        boolean isIn = true;
+        for (int i=0; i < maxPlanets; i++){
+            if (nodePlanet == planetVisited[i]){
+                isIn = false;
+            }
+
+        }
+        return isIn;
     }
 
     public void incrementCounter() {
