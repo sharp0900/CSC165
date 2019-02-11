@@ -30,8 +30,6 @@ public class CameraMoveLeftRight extends AbstractInputAction{
                             (Vector3f) Vector3f.createFrom(0.01f*viewVector.x(), 0.01f*viewVector.y(), 0.01f*viewVector.z());
                     Vector3f newPosition = (Vector3f) currentPosition.sub(pMatrixMultiply);
                     camera.setPo((Vector3f)Vector3f.createFrom(newPosition.x(),newPosition.y(),newPosition.z()));
-                }else{
-                    System.out.println("Can no longer move, Please get on Dolphin.");
                 }
             }
             else{
@@ -46,8 +44,6 @@ public class CameraMoveLeftRight extends AbstractInputAction{
                             (Vector3f) Vector3f.createFrom(0.01f*viewVector.x(), 0.01f*viewVector.y(), 0.01f*viewVector.z());
                     Vector3f newPosition = (Vector3f) currentPosition.add(pMatrixMultiply);
                     camera.setPo((Vector3f)Vector3f.createFrom(newPosition.x(),newPosition.y(),newPosition.z()));
-                }else{
-                    System.out.println("Can no longer move, Please get on Dolphin.");
                 }
             }
             else{

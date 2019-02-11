@@ -142,12 +142,12 @@ public class myGame extends VariableFrameRateGame {
             planetE[i].setRenderState(state);
         }
         sm.addController(rc);
+        /*=======================================================================*/
 
         // This will call a function that will create the inputs for the game.
         setupInputs();
-        /*=======================================================================*/
-    }
 
+    }
 
     protected void setupInputs(){
         // build some action objects for doing things in response to user input
@@ -217,7 +217,6 @@ public class myGame extends VariableFrameRateGame {
                 InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
     }
 
-
     @Override
     protected void update(Engine engine) {
         // build and set HUD
@@ -232,6 +231,7 @@ public class myGame extends VariableFrameRateGame {
         checkDistance();
     }
 
+    // ======== This will update the HUD when the player gets too far from the dolphin. ===============
     private String hudContent(String display){
         String content = display;
         if(stop && getEngine().getSceneManager().getCamera("MainCamera").getMode() == 'c'){
@@ -239,6 +239,7 @@ public class myGame extends VariableFrameRateGame {
         }
         return content;
     }
+    //==========================================================================================
 
     // ======== This will check the distant between the player and the Dolphin. ===============
     public boolean dolphinDistanceLimit(){
