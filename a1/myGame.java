@@ -213,7 +213,7 @@ public class myGame extends VariableFrameRateGame {
         elapsTimeStr = Integer.toString(elapsTimeSec);
         counterStr = Integer.toString(counter);
         im.update(elapsTime);
-        dispStr = "Time = " + elapsTimeStr + "   Visited Planets = " + counterStr;
+        dispStr = "  Visited Planets = " + counterStr;
         rs.setHUD(dispStr, 15, 15);
         checkDistance();
     }
