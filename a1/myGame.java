@@ -2,9 +2,8 @@ package a1;
 import myGameEngine.*;
 
 import java.awt.*;
-import java.awt.event.*;
 import java.io.*;
-import javafx.scene.Scene;
+
 import ray.rage.*;
 import ray.rage.game.*;
 import ray.rage.rendersystem.*;
@@ -17,7 +16,7 @@ import ray.rage.rendersystem.gl4.GL4RenderSystem;
 import ray.rage.rendersystem.states.*;
 import ray.rage.asset.texture.*;
 import ray.input.*;
-import ray.input.action.*;
+
 import java.util.Random;
 
 public class myGame extends VariableFrameRateGame {
@@ -57,23 +56,19 @@ public class myGame extends VariableFrameRateGame {
 
     @Override
     protected void setupCameras(SceneManager sm, RenderWindow rw) {
-        SceneNode rootNode = sm.getRootSceneNode();
         Camera camera = sm.createCamera("MainCamera", Projection.PERSPECTIVE);
         rw.getViewport(0).setCamera(camera);
+        camera.setMode('c');
+
         camera.setRt((Vector3f)Vector3f.createFrom(1.0f, 0.0f, 0.0f));
         camera.setUp((Vector3f)Vector3f.createFrom(0.0f, 1.0f, 0.0f));
         camera.setFd((Vector3f)Vector3f.createFrom(0.0f, 0.0f, -1.0f));
         camera.setPo((Vector3f)Vector3f.createFrom(0.0f, 0.0f, 0.0f));
-
-        SceneNode cameraNode = rootNode.createChildSceneNode(camera.getName() + "Node");
-        cameraNode.attachObject(camera);
     }
 
     @Override
     protected void setupScene(Engine eng, SceneManager sm) throws IOException {
 
-        // This will call a function that will create the inputs for the game.
-        setupInputs();
 
         /*========= Objects to set up planets ==================================================== */
         SceneNode[] planetAmount = new SceneNode[maxPlanets];
@@ -97,7 +92,10 @@ public class myGame extends VariableFrameRateGame {
         dolphinN.moveBackward(2.0f);
         dolphinN.attachObject(dolphinE);
 
-        SceneNode dolphineCN = dolphinN.createChildSceneNode("dolphinCameraNode");
+        SceneNode dolphinCN = dolphinN.createChildSceneNode("dolphinCameraNode");
+        dolphinCN.setLocalPosition(0.0f, 0.5f, -0.5f);
+        dolphinCN.attachObject(getEngine().getSceneManager().getCamera("MainCamera"));
+
         /*=======================================================================*/
 
         /*========= PLANETS ==================================================== */
@@ -140,6 +138,9 @@ public class myGame extends VariableFrameRateGame {
             planetE[i].setRenderState(state);
         }
         sm.addController(rc);
+
+        // This will call a function that will create the inputs for the game.
+        setupInputs();
         /*=======================================================================*/
     }
 
@@ -149,14 +150,15 @@ public class myGame extends VariableFrameRateGame {
         QuitGameAction quitGameAction = new QuitGameAction(this);
         IncrementCounterAction incrementCounterAction = new IncrementCounterAction(this);
         CameraChangeView cameraChangeView = new CameraChangeView(this);
-        CameraMoveFoward cameraMoveFoward = new CameraMoveFoward(this);
+        CameraMoveFowardBack cameraMoveFoward = new CameraMoveFowardBack(this);
 
         // Creates and sets up inputs.
         im = new GenericInputManager();
         String kbName = im.getKeyboardName();
+        String gpName;
         System.out.println(kbName);
         try{
-            String gpName = im.getFirstGamepadName();
+            gpName = im.getFirstGamepadName();
             System.out.println(gpName);
 
             im.associateAction(gpName,
@@ -175,6 +177,10 @@ public class myGame extends VariableFrameRateGame {
                     net.java.games.input.Component.Identifier.Button._2,
                     cameraMoveFoward,
                     InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+//            im.associateAction(gpName,
+//                    Component.Identifier.Axis.Y,
+//                    cameraMoveFoward,
+//                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
         }
         catch (Exception e){
             System.out.println("No Controller Detected");
@@ -209,43 +215,8 @@ public class myGame extends VariableFrameRateGame {
         rs.setHUD(dispStr, 15, 15);
     }
 
-    public void cameraOffDolphin(Camera camera){
-        SceneNode mainCamera = getEngine().getSceneManager().getSceneNode("MainCameraNode");
-        SceneNode dolphinCamera = getEngine().getSceneManager().getSceneNode("dolphinCameraNode");
-        mainCamera.attachObject(camera);
-        camera.setPo((Vector3f)Vector3f.createFrom(dolphinCamera.getLocalPosition().x() + 0.2f, dolphinCamera.getLocalPosition().y() - 0.5f, dolphinCamera.getLocalPosition().x() + 0.5f));
-    }
-
-    public void cameraOnDolphin(Camera camera){
-        SceneNode dolphinCamera = getEngine().getSceneManager().getSceneNode("dolphinCameraNode");
-        dolphinCamera.setLocalPosition(Vector3f.createFrom(0.0f, 0.5f, -0.5f));
-        dolphinCamera.attachObject(camera);
-    }
-
     public void incrementCounter() {
         counter++;
     }
-
-//    @Override
-//    public void keyPressed(KeyEvent e) {
-//        Entity dolphin = getEngine().getSceneManager().getEntity("myDolphin");
-//        switch (e.getKeyCode()) {
-//            case KeyEvent.VK_L:
-//                dolphin.setPrimitive(Primitive.LINES);
-//                break;
-//            case KeyEvent.VK_T:
-//                dolphin.setPrimitive(Primitive.TRIANGLES);
-//                break;
-//            case KeyEvent.VK_P:
-//                dolphin.setPrimitive(Primitive.POINTS);
-//                break;
-//            case KeyEvent.VK_C:
-//                counter++;
-//                break;
-//            case KeyEvent.VK_X:
-//                break;
-//        }
-//        super.keyPressed(e);
-//    }
 
 }
