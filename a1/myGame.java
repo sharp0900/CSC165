@@ -74,7 +74,6 @@ public class myGame extends VariableFrameRateGame {
 
 
         /*========= Objects to set up planets ==================================================== */
-
         Entity[] planetE = new Entity[maxPlanets];
         int maxDistance = 10;
         int minDistance = 2;
@@ -133,7 +132,6 @@ public class myGame extends VariableFrameRateGame {
 
         /*======== ROTATION and Texture Set ====================================================*/
         RotationController rc = new RotationController(Vector3f.createUnitVectorY(), .02f);
-        rc.addNode(dolphinN);
         for (int i = 0; i < maxPlanets; i++){
             state = (TextureState) rs.createRenderState(RenderState.Type.TEXTURE);
             rc.addNode(planetAmount[i]);
@@ -154,6 +152,7 @@ public class myGame extends VariableFrameRateGame {
         IncrementCounterAction incrementCounterAction = new IncrementCounterAction(this);
         CameraChangeView cameraChangeView = new CameraChangeView(this);
         CameraMoveFowardBack cameraMoveFoward = new CameraMoveFowardBack(this);
+        CameraMoveLeftRight cameraMoveLeftRight = new CameraMoveLeftRight(this);
 
         // Creates and sets up inputs.
         im = new GenericInputManager();
@@ -177,12 +176,12 @@ public class myGame extends VariableFrameRateGame {
                     cameraChangeView,
                     InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
             im.associateAction(gpName,
-                    net.java.games.input.Component.Identifier.Button._2,
+                    Component.Identifier.Axis.Y,
                     cameraMoveFoward,
                     InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
             im.associateAction(gpName,
-                    Component.Identifier.Axis.Y,
-                    cameraMoveFoward,
+                    Component.Identifier.Axis.X,
+                    cameraMoveLeftRight,
                     InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
         }
         catch (Exception e){
@@ -219,54 +218,65 @@ public class myGame extends VariableFrameRateGame {
         checkDistance();
     }
 
+    // ======== This will check the distant between the player and the Dolphin. ===============
+    public boolean dolphinDistanceLimit(){
+        boolean limit = true;
+        float distanceLimit = 3.0f;
+        float distanceX, distanceZ;
+        SceneNode dolphin = getEngine().getSceneManager().getSceneNode("dolphinENode");
+        Vector3 cameraPosition = getEngine().getSceneManager().getCamera("MainCamera").getPo();
+
+        distanceX = Math.abs(dolphin.getLocalPosition().x() - cameraPosition.x());
+        distanceZ = Math.abs(dolphin.getLocalPosition().z() - cameraPosition.z());
+
+        if (distanceX > distanceLimit || distanceZ > distanceLimit){
+            limit = false;
+        }
+        return limit;
+    }
+    //==========================================================================================
+
+    //======== This will check the distant between the player and the planets ================
     public void checkDistance(){
-        Vector3 planetPosition;
-        float planetScale, scaleX, scaleZ, scaleFinal;
-        float north, east, south, west;
-        SceneNode dolphinNode = getEngine().getSceneManager().getSceneNode("dolphinENode");
+        if(getEngine().getSceneManager().getCamera("MainCamera").getMode() == 'c'){
+            Vector3 planetPosition;
+            float distanceX, distanceZ, distantLimit = 1.5f;
+            Camera camera = getEngine().getSceneManager().getCamera("MainCamera");
 
+            for (int i = 0; i < maxPlanets; i++){
+                planetPosition = planetAmount[i].getLocalPosition();
+                distanceX = Math.abs(camera.getPo().x() - planetPosition.x());
+                distanceZ = Math.abs(camera.getPo().z() - planetPosition.z());
 
-        for (int i = 0; i < maxPlanets; i++){
-            planetPosition = planetAmount[i].getLocalPosition();
-            planetScale = planetAmount[i].getLocalScale().x();
-            scaleZ = Math.abs(planetScale*planetPosition.z());
-            scaleX = Math.abs(planetScale*planetPosition.x());
-
-            if(scaleZ > scaleX){
-                scaleFinal = scaleZ;
-            }else{
-                scaleFinal = scaleX;
-            }
-
-            north = scaleFinal + planetPosition.z();
-            south = planetPosition.z() - scaleFinal;
-            east = scaleFinal + planetPosition.x();
-            west = planetPosition.x() - scaleFinal;
-
-            if(dolphinNode.getLocalPosition().z() < north && dolphinNode.getLocalPosition().z() > south &&
-                    dolphinNode.getLocalPosition().z() < east && dolphinNode.getLocalPosition().z() > west){
-                if (visitYet(planetAmount[i])){
-                    incrementCounter();
-                    System.out.println(planetAmount[i]);
-                    planetVisited[i] = planetAmount[i];
+                if (!(visitYet(planetAmount[i]))){
+                    if(distanceX < distantLimit && distanceZ < distantLimit){
+                        planetVisited[i] = planetAmount[i];
+                        incrementCounter();
+                    }
                 }
             }
         }
     }
+    //==========================================================================================
 
+    //======== This will check if a planet has been visited yet =======================
     public boolean visitYet(SceneNode nodePlanet){
-        boolean isIn = true;
+        boolean isIn = false;
         for (int i=0; i < maxPlanets; i++){
             if (nodePlanet == planetVisited[i]){
-                isIn = false;
+                isIn = true;
             }
-
         }
         return isIn;
     }
+    //==========================================================================================
 
     public void incrementCounter() {
         counter++;
+    }
+
+    public float getElapsTime(){
+        return elapsTimeSec;
     }
 
 }
