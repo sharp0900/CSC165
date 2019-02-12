@@ -10,13 +10,13 @@ import ray.rml.Degreef;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
-public class CameraTiltLeftRight extends AbstractInputAction {
+public class CameraMoveRoll extends AbstractInputAction {
 
     private myGame game;
     private Camera camera;
     private SceneNode dolphinCamNode;
 
-    public CameraTiltLeftRight(myGame g){
+    public CameraMoveRoll(myGame g){
         game = g;
         camera = g.getEngine().getSceneManager().getCamera("MainCamera");
         dolphinCamNode = g.getEngine().getSceneManager().getSceneNode("dolphinENode");
@@ -36,13 +36,12 @@ public class CameraTiltLeftRight extends AbstractInputAction {
         if(event.getValue() < -0.1){
             if (camera.getMode() == 'c'){
                 tilt = 1f;
-                Vector3 fdFinal = (fd.rotate(Degreef.createFrom(degreeAmount * tilt), up)).normalize();
-                Vector3 rtFinal = (rt.rotate(Degreef.createFrom(degreeAmount * tilt), up)).normalize();
-                camera.setFd((Vector3f)Vector3f.createFrom(fdFinal.x(),fdFinal.y(),fdFinal.z()));
+                Vector3 upFinal = (up.rotate(Degreef.createFrom(degreeAmount * tilt), fd)).normalize();
+                Vector3 rtFinal = (rt.rotate(Degreef.createFrom(degreeAmount * tilt), fd)).normalize();
+                camera.setUp((Vector3f)Vector3f.createFrom(upFinal.x(),upFinal.y(),upFinal.z()));
                 camera.setRt((Vector3f)Vector3f.createFrom(rtFinal.x(),rtFinal.y(),rtFinal.z()));
-
             }else{
-                dolphinCamNode.yaw(rotAmt);
+                dolphinCamNode.roll(rotAmt);
             }
 
         }else if (event.getValue() > 0.1){
@@ -50,12 +49,12 @@ public class CameraTiltLeftRight extends AbstractInputAction {
 
             if (camera.getMode() == 'c'){
                 tilt = -1f;
-                Vector3 fdFinal = (fd.rotate(Degreef.createFrom(degreeAmount * tilt), up)).normalize();
-                Vector3 rtFinal = (rt.rotate(Degreef.createFrom(degreeAmount * tilt), up)).normalize();
-                camera.setFd((Vector3f)Vector3f.createFrom(fdFinal.x(),fdFinal.y(),fdFinal.z()));
+                Vector3 upFinal = (up.rotate(Degreef.createFrom(degreeAmount * tilt), fd)).normalize();
+                Vector3 rtFinal = (rt.rotate(Degreef.createFrom(degreeAmount * tilt), fd)).normalize();
+                camera.setUp((Vector3f)Vector3f.createFrom(upFinal.x(),upFinal.y(),upFinal.z()));
                 camera.setRt((Vector3f)Vector3f.createFrom(rtFinal.x(),rtFinal.y(),rtFinal.z()));
             }else{
-                dolphinCamNode.yaw(rotAmt);
+                dolphinCamNode.roll(rotAmt);
             }
 
         }

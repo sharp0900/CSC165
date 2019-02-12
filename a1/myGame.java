@@ -113,8 +113,11 @@ public class myGame extends VariableFrameRateGame {
             float scalePlanetNum = new Random().nextFloat();
             planetAmount[i] = sm.getRootSceneNode().createChildSceneNode(planetE[i].getName() + "Node");
             planetAmount[i].moveBackward((float)new Random().nextInt((maxDistance - minDistance) + 1) + minDistance);
+            planetAmount[i].moveForward((float)new Random().nextInt((maxDistance - minDistance) + 1) + minDistance);
             planetAmount[i].moveLeft((float)new Random().nextInt((maxDistance - minDistance) + 1) + minDistance);
             planetAmount[i].moveRight((float)new Random().nextInt((maxDistance - minDistance) + 1) + minDistance);
+            planetAmount[i].moveDown((float)new Random().nextInt((maxDistance - minDistance) + 1) + minDistance);
+            planetAmount[i].moveUp((float)new Random().nextInt((maxDistance - minDistance) + 1) + minDistance);
             planetAmount[i].scale(scalePlanetNum,scalePlanetNum,scalePlanetNum);
             planetAmount[i].attachObject(planetE[i]);
         }
@@ -159,6 +162,7 @@ public class myGame extends VariableFrameRateGame {
         CameraTiltLeftRight cameraTiltLeftRight = new CameraTiltLeftRight(this);
         CameraTiltUpDown cameraTiltUpDown = new CameraTiltUpDown(this);
         CameraReset cameraReset = new CameraReset(this);
+        CameraMoveRoll cameraMoveRoll = new CameraMoveRoll(this);
 
         // Creates and sets up inputs.
         im = new GenericInputManager();
@@ -196,6 +200,10 @@ public class myGame extends VariableFrameRateGame {
             im.associateAction(gpName,
                     Component.Identifier.Axis.RY,
                     cameraTiltUpDown,
+                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+            im.associateAction(gpName,
+                    Component.Identifier.Axis.Z,
+                    cameraMoveRoll,
                     InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
         }
         catch (Exception e){
