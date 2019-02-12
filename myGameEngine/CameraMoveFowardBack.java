@@ -29,7 +29,6 @@ public class CameraMoveFowardBack extends AbstractInputAction{
             if(camera.getMode() == 'c'){
                 if(game.dolphinDistanceLimit()){
                     Vector3f newPosition = (Vector3f) currentPosition.add(pMatrixMultiply);
-
                     camera.setPo((Vector3f)Vector3f.createFrom(newPosition.x(),newPosition.y(),newPosition.z()));
                 }
             }
