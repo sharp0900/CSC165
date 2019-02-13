@@ -32,7 +32,8 @@ public class myGame extends VariableFrameRateGame {
     float elapsTime = 0.0f;
     boolean stop = false;
     String elapsTimeStr, counterStr, dispStr;
-    int elapsTimeSec, counter = 0, maxPlanets = 5;
+    int elapsTimeSec, counter = 0, maxPlanets = 5, muberPoints = 0;
+    SceneNode nullNode;
 
     // Array to hold manual objects
     ManualObject[] muberE = new ManualObject[maxPlanets];
@@ -89,18 +90,21 @@ public class myGame extends VariableFrameRateGame {
     @Override
     protected void setupScene(Engine eng, SceneManager sm) throws IOException {
 
+        /*========= Creating a Null Test Node ==================================================== */
+        nullNode = sm.getRootSceneNode().createChildSceneNode("NULL");
+        /*======================================================================================== */
 
         /*========= Objects to set up planets ==================================================== */
         Entity[] planetE = new Entity[maxPlanets];
         int maxDistance = 20;
         int minDistance = 2;
-        /*=======================================================================*/
+        /*=========================================================================================*/
 
         /*========= Objects to set up changing textures ==================================================== */
         TextureManager tm = eng.getTextureManager();
         RenderSystem rs = sm.getRenderSystem();
         TextureState state;
-        /*=======================================================================*/
+        /*===================================================================================================*/
 
         /*========= DOLPHIN and DOLPHIN CAMERA NODE ==================================================== */
         Entity dolphinE = sm.createEntity("myDolphin", "dolphinHighPoly.obj");
@@ -137,7 +141,6 @@ public class myGame extends VariableFrameRateGame {
         /*=======================================================================*/
 
         /*========= Code to spawn manual object in world ==================================================== */
-
         for (int i = 0; i < maxPlanets; i++){
             muberE[i] = makeDiamondEngine(eng, sm);
         }
@@ -148,7 +151,13 @@ public class myGame extends VariableFrameRateGame {
             diamondN.scale(0.05f, 0.05f, 0.05f);
             diamondN.attachObject(muberE[i]);
         }
+        /*=======================================================================*/
 
+        /*========= Code to spawn XYZ Coordinates in world ==================================================== */
+        SceneObject xBarE = makeXBarEngine(eng,sm);
+        SceneNode xBarN = sm.getRootSceneNode().createChildSceneNode("XBar");
+        xBarN.scale(2.5f,2.5f,2.5f);
+        xBarN.attachObject(xBarE);
         /*=======================================================================*/
 
         /*======== LIGHTING ====================================================*/
@@ -171,6 +180,7 @@ public class myGame extends VariableFrameRateGame {
             rc.addNode(planetAmount[i]);
             state.setTexture(tm.getAssetByPath(textureFiles[new Random().nextInt(textureFiles.length)]));
             planetE[i].setRenderState(state);
+
         }
         sm.addController(rc);
         /*=======================================================================*/
@@ -262,17 +272,19 @@ public class myGame extends VariableFrameRateGame {
         elapsTimeStr = Integer.toString(elapsTimeSec);
         counterStr = Integer.toString(counter);
         im.update(elapsTime);
-        dispStr = hudContent("  Visited Planets = " + counterStr);
-        rs.setHUD(dispStr, 13, 13);
         checkDistance();
         muberGame();
+        dispStr = hudContent("Time" + elapsTimeSec +"  Visited Planets = " + counterStr);
+        rs.setHUD(dispStr, 13, 13);
     }
 
     // ======== This will update the HUD when the player gets too far from the dolphin. ===============
     private String hudContent(String display){
         String content = display;
         if(stop && getEngine().getSceneManager().getCamera("MainCamera").getMode() == 'c'){
-            content = content + "       Too far from dolphin, Press B(Controller) or SpaceBar(Keyboard)." ;
+            content = "  Too far from dolphin, Press B(Controller) or SpaceBar(Keyboard)." ;
+        }else if (muberPoints != 0){
+            content = content + "     Nice drop off, you just got rated a " +  muberPoints + " out of 5!";
         }
         return content;
     }
@@ -315,10 +327,11 @@ public class myGame extends VariableFrameRateGame {
                     if(distanceX < distantLimit && distanceZ < distantLimit){
                         planetVisited[i] = planetAmount[i];
                         incrementCounter();
+                        }
+
                     }
                 }
             }
-        }
     }
     //==========================================================================================
 
@@ -334,6 +347,55 @@ public class myGame extends VariableFrameRateGame {
     }
     //==========================================================================================
 
+    //=========== This will create X Cordanate Bar as a manual object =========================
+    private ManualObject makeXBarEngine (Engine eng, SceneManager sm) throws IOException {
+        ManualObject xBar = sm.createManualObject("XBar");
+        ManualObjectSection xBarSec = xBar.createManualSection("SquareSection");
+        xBar.setGpuShaderProgram(sm.getRenderSystem().
+                getGpuShaderProgram(GpuShaderProgram.Type.RENDERING));
+
+        float[] vertices = new float[]{
+                -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f
+                -1.0f, .5f, 0.0f, 1.0f, 0.5f, 0.0f
+        };
+
+        float[] texcoords = new float[]{
+                0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+                1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f
+        };
+
+        float[] normals = new float[]{
+                0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f
+        };
+
+        int[] indices = new int[] {0,1};
+
+        FloatBuffer vertBuf = BufferUtil.directFloatBuffer(vertices);
+        FloatBuffer texBuf = BufferUtil.directFloatBuffer(texcoords);
+        FloatBuffer normBuf = BufferUtil.directFloatBuffer(normals);
+        IntBuffer indexBuf = BufferUtil.directIntBuffer(indices);
+
+        xBarSec.setVertexBuffer(vertBuf);
+        xBarSec.setTextureCoordsBuffer(texBuf);
+        xBarSec.setNormalsBuffer(normBuf);
+        xBarSec.setIndexBuffer(indexBuf);
+
+        Texture tex =
+                eng.getTextureManager().getAssetByPath(textureFiles[new Random().nextInt(textureFiles.length)]);
+        TextureState texState = (TextureState)sm.getRenderSystem().
+                createRenderState(RenderState.Type.TEXTURE);
+        texState.setTexture(tex);
+        FrontFaceState faceState = (FrontFaceState) sm.getRenderSystem().
+                createRenderState(RenderState.Type.FRONT_FACE);
+
+        xBar.setDataSource(DataSource.INDEX_BUFFER);
+        xBar.setRenderState(texState);
+        xBar.setRenderState(faceState);
+
+        return xBar;
+    }
+    //==========================================================================================
 
     //=========== This will create manual objects with names from 0 to 5 =======================
     private ManualObject makeDiamondEngine (Engine eng, SceneManager sm) throws IOException {
@@ -404,31 +466,74 @@ public class myGame extends VariableFrameRateGame {
     }
     //==========================================================================================
 
-    //============ My Muber Game Logic=========================================================
+    //============ My Muber Game Logic =========================================================
     private void muberGame(){
+
         if(getEngine().getSceneManager().getCamera("MainCamera").getMode() == 'c'){
-            float distanceLimit = 0.3f;
+            float distanceLimit = 1.00f;
             float distanceX, distanceZ, distanceY;
             Vector3 cameraPosition = getEngine().getSceneManager().getCamera("MainCamera").getPo();
 
             for(int i = 0; i < maxPlanets; i++){
-                SceneNode muberNode = getEngine().getSceneManager().getSceneNode("diamondNode" + i);
-                distanceX = Math.abs(muberNode.getLocalPosition().x() - cameraPosition.x());
-                distanceY = Math.abs(muberNode.getLocalPosition().x() - cameraPosition.x());
-                distanceZ = Math.abs(muberNode.getLocalPosition().z() - cameraPosition.z());
+                if(getEngine().getSceneManager().getSceneNode("babycarry").getAttachedObjectCount() != 1){
+                        SceneNode muberNode = getEngine().getSceneManager().getSceneNode("diamondNode" + i);
+                        distanceX = Math.abs(cameraPosition.x() - muberNode.getLocalPosition().x());
+                        distanceY = Math.abs(cameraPosition.x() - muberNode.getLocalPosition().x());
+                        distanceZ = Math.abs(cameraPosition.z() - muberNode.getLocalPosition().z());
+                        if (distanceX < distanceLimit && distanceZ < distanceLimit && distanceY < distanceLimit){
+                            if (!isPickedUp(getEngine().getSceneManager().getSceneNode("myPlanet" + i + "Node"))) {
+                                mubersPicked[i] = getEngine().getSceneManager().getSceneNode("myPlanet" + i + "Node");
+                                getEngine().getSceneManager().getSceneNode("babycarry").attachObject(muberNode.getAttachedObject(0));
+                                nullNode = getEngine().getSceneManager().getSceneNode("myPlanet" + i + "Node");
+                                getEngine().getSceneManager().getSceneNode("myPlanet" + i + "Node").detachAllChildren();
+                                getEngine().getSceneManager().getSceneNode("babycarry").scale(.05f,.05f,.05f);
+                            }
+                        }
 
-                if (getEngine().getSceneManager().getSceneNode("babycarry").getAttachedObjectCount() <= 0){
-                    if (distanceX > distanceLimit && distanceZ > distanceLimit && distanceY > distanceLimit){
-                        System.out.println("TRIES");
-                        getEngine().getSceneManager().getSceneNode("babycarry").attachChild(muberNode);
+                } else if(getEngine().getSceneManager().getSceneNode("babycarry").getAttachedObjectCount() == 1){
+                    Vector3 planetPosition;
+                    float distantLimit = 1.5f;
+                    Camera camera = getEngine().getSceneManager().getCamera("MainCamera");
+
+                    for (int k = 0; k < maxPlanets; k ++){
+                        planetPosition = planetAmount[k].getLocalPosition();
+                            distanceX = Math.abs(camera.getPo().x() - planetPosition.x());
+                            distanceZ = Math.abs(camera.getPo().z() - planetPosition.z());
+
+                            if(distanceX < distantLimit && distanceZ < distantLimit && planetAmount[k] == nullNode){
+                                calculatePoints();
+                                getEngine().getSceneManager().getSceneNode("babycarry").detachAllObjects();
+                            }
                     }
                 }
             }
 
         }
     }
-    //==========================================================================================
 
+    private boolean isPickedUp(SceneNode muber){
+        boolean pickedUp = false;
+        for (int i=0; i < maxPlanets; i++){
+            if (muber == mubersPicked[i]){
+                pickedUp = true;
+            }
+        }
+        System.out.println(pickedUp);
+        return pickedUp;
+    }
+
+    private void calculatePoints(){
+        if(elapsTimeSec <= 6){
+            muberPoints = 5;
+        } else if (elapsTimeSec <= 15){
+            muberPoints = 3;
+        } else if (elapsTimeSec > 15){
+            muberPoints = 1;
+        }
+
+    }
+
+    //=============== Game Logic Ends ====================================================
 
     public void incrementCounter() {
         counter++;
