@@ -33,19 +33,8 @@ public class CameraTiltUpDown extends AbstractInputAction {
         float degreeAmount = .7f;
         Angle rotAmt = Degreef.createFrom(degreeAmount);
 
-        if(event.getValue() > 0.1){
-            if (camera.getMode() == 'c'){
-                tilt = -1f;
-                Vector3 fdFinal = (fd.rotate(Degreef.createFrom(degreeAmount * tilt), rt)).normalize();
-                Vector3 upFinal = (up.rotate(Degreef.createFrom(degreeAmount * tilt), rt)).normalize();
-                camera.setFd((Vector3f)Vector3f.createFrom(fdFinal.x(),fdFinal.y(),fdFinal.z()));
-                camera.setUp((Vector3f)Vector3f.createFrom(upFinal.x(),upFinal.y(),upFinal.z()));
-            }else{
-                dolphinCamNode.pitch(rotAmt);
-            }
-
-        }else if (event.getValue() < -0.1 ){
-            rotAmt = Degreef.createFrom(-degreeAmount);
+        if(event.getValue() < -0.1 || event.getComponent().getName().equals("Up")){
+                        rotAmt = Degreef.createFrom(-degreeAmount);
 
             if (camera.getMode() == 'c'){
                 tilt = 1f;
@@ -54,6 +43,18 @@ public class CameraTiltUpDown extends AbstractInputAction {
                 camera.setFd((Vector3f)Vector3f.createFrom(fdFinal.x(),fdFinal.y(),fdFinal.z()));
                 camera.setUp((Vector3f)Vector3f.createFrom(upFinal.x(),upFinal.y(),upFinal.z()));
 
+            }else{
+                dolphinCamNode.pitch(rotAmt);
+            }
+
+        }else if (event.getValue() > 0.1 || event.getComponent().getName().equals("Down")){
+
+            if (camera.getMode() == 'c'){
+                tilt = -1f;
+                Vector3 fdFinal = (fd.rotate(Degreef.createFrom(degreeAmount * tilt), rt)).normalize();
+                Vector3 upFinal = (up.rotate(Degreef.createFrom(degreeAmount * tilt), rt)).normalize();
+                camera.setFd((Vector3f)Vector3f.createFrom(fdFinal.x(),fdFinal.y(),fdFinal.z()));
+                camera.setUp((Vector3f)Vector3f.createFrom(upFinal.x(),upFinal.y(),upFinal.z()));
             }else{
                 dolphinCamNode.pitch(rotAmt);
             }

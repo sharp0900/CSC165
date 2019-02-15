@@ -5,6 +5,7 @@ import java.awt.*;
 import java.io.*;
 
 import net.java.games.input.Component;
+import net.java.games.input.Controller;
 import ray.rage.*;
 import ray.rage.game.*;
 import ray.rage.rendersystem.*;
@@ -22,6 +23,7 @@ import ray.input.*;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
 import java.util.Random;
 
 public class myGame extends VariableFrameRateGame {
@@ -29,10 +31,10 @@ public class myGame extends VariableFrameRateGame {
     // to minimize variable allocation in update()
     GL4RenderSystem rs;
     GenericInputManager im;
-    float elapsTime = 0.0f;
+    float elapsTime = 0.0f, timeCounter = 0.0f;
     boolean stop = false;
     String elapsTimeStr, counterStr, dispStr;
-    int elapsTimeSec, counter = 0, maxPlanets = 5, muberPoints = 0;
+    int elapsTimeSec, counter = 0, maxPlanets = 5, muberPoints = 0, muberTotal = 0;
     SceneNode nullNode;
 
     // Array to hold manual objects
@@ -155,9 +157,22 @@ public class myGame extends VariableFrameRateGame {
 
         /*========= Code to spawn XYZ Coordinates in world ==================================================== */
         SceneObject xBarE = makeXBarEngine(eng,sm);
+        ((ManualObject) xBarE).setPrimitive(Primitive.LINES);
         SceneNode xBarN = sm.getRootSceneNode().createChildSceneNode("XBar");
-        xBarN.scale(2.5f,2.5f,2.5f);
+        xBarN.scale(2.0f,2.0f,2.0f);
         xBarN.attachObject(xBarE);
+
+        SceneObject yBarE = makeYBarEngine(eng,sm);
+        ((ManualObject) yBarE).setPrimitive(Primitive.LINES);
+        SceneNode yBarN = sm.getRootSceneNode().createChildSceneNode("YBar");
+        yBarN.scale(2.0f,2.0f,2.0f);
+        yBarN.attachObject(yBarE);
+
+        SceneObject zBarE = makeZBarEngine(eng,sm);
+        ((ManualObject) zBarE).setPrimitive(Primitive.LINES);
+        SceneNode zBarN = sm.getRootSceneNode().createChildSceneNode("ZBar");
+        zBarN.scale(2.0f,2.0f,2.0f);
+        zBarN.attachObject(zBarE);
         /*=======================================================================*/
 
         /*======== LIGHTING ====================================================*/
@@ -185,6 +200,10 @@ public class myGame extends VariableFrameRateGame {
         sm.addController(rc);
         /*=======================================================================*/
 
+        state = (TextureState) rs.createRenderState(RenderState.Type.TEXTURE);
+        state.setTexture(tm.getAssetByPath("Dolphin_HighPolyUV_Muber.jpg"));
+        dolphinE.setRenderState(state);
+
         // This will call a function that will create the inputs for the game.
         setupInputs();
 
@@ -204,65 +223,115 @@ public class myGame extends VariableFrameRateGame {
 
         // Creates and sets up inputs.
         im = new GenericInputManager();
-        String kbName = im.getKeyboardName();
-        String gpName;
-        System.out.println(kbName);
-        try{
-            gpName = im.getFirstGamepadName();
-            System.out.println(gpName);
+        ArrayList controllers = im.getControllers();
+        for (int i = 0; i < controllers.size(); i++) {
+            Controller c = (Controller)controllers.get(i);
+            if (c.getType() == Controller.Type.KEYBOARD) {
+                im.associateAction(
+                        c,
+                        Component.Identifier.Key.W,
+                        new CameraMoveFowardBack(this),
+                        InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+                im.associateAction(
+                        c,
+                        Component.Identifier.Key.S,
+                        new CameraMoveFowardBack(this),
+                        InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+                im.associateAction(
+                        c,
+                        Component.Identifier.Key.D,
+                        new CameraMoveLeftRight(this),
+                        InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+                im.associateAction(
+                        c,
+                        Component.Identifier.Key.A,
+                        new CameraMoveLeftRight(this),
+                        InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+                im.associateAction(
+                        c,
+                        Component.Identifier.Key.UP,
+                        new CameraTiltUpDown(this),
+                        InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+                im.associateAction(
+                        c,
+                        Component.Identifier.Key.DOWN,
+                        new CameraTiltUpDown(this),
+                        InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+                im.associateAction(
+                        c,
+                        Component.Identifier.Key.LEFT,
+                        new CameraTiltLeftRight(this),
+                        InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+                im.associateAction(
+                        c,
+                        Component.Identifier.Key.RIGHT,
+                        new CameraTiltLeftRight(this),
+                        InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 
-            im.associateAction(gpName,
+                im.associateAction(
+                        c,
+                        Component.Identifier.Key.SPACE,
+                        new CameraChangeView(this),
+                        InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+
+                im.associateAction(
+                        c,
+                        Component.Identifier.Key.R,
+                        new CameraReset(this),
+                        InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+
+                im.associateAction(
+                        c,
+                        Component.Identifier.Key.E,
+                        new CameraMoveRoll(this),
+                        InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+
+                im.associateAction(
+                        c,
+                        Component.Identifier.Key.Q,
+                        new CameraMoveRoll(this),
+                        InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+
+            }
+        else if (c.getType() == Controller.Type.GAMEPAD || c.getType() == Controller.Type.STICK) {
+
+            im.associateAction(c,
                     net.java.games.input.Component.Identifier.Button._9,
                     quitGameAction,
                     InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
-            im.associateAction(gpName,
+            im.associateAction(c,
                     net.java.games.input.Component.Identifier.Button._3,
                     cameraReset,
                     InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
-            im.associateAction(gpName,
+            im.associateAction(c,
                     net.java.games.input.Component.Identifier.Button._1,
                     cameraChangeView,
                     InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
-            im.associateAction(gpName,
+            im.associateAction(c,
                     Component.Identifier.Axis.Y,
                     cameraMoveFoward,
                     InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-            im.associateAction(gpName,
+            im.associateAction(c,
                     Component.Identifier.Axis.X,
                     cameraMoveLeftRight,
                     InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-            im.associateAction(gpName,
+            im.associateAction(c,
                     Component.Identifier.Axis.RX,
                     cameraTiltLeftRight,
                     InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-            im.associateAction(gpName,
+            im.associateAction(c,
                     Component.Identifier.Axis.RY,
                     cameraTiltUpDown,
                     InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-            im.associateAction(gpName,
+            im.associateAction(c,
                     Component.Identifier.Axis.Z,
                     cameraMoveRoll,
                     InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+         }
         }
-        catch (Exception e){
-            System.out.println("No Controller Detected");
-        }
-
-        // attach the action objects to keyboard and gamepad components
-        im.associateAction(kbName,
-                net.java.games.input.Component.Identifier.Key.ESCAPE,
-                quitGameAction,
-                InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
-        im.associateAction(kbName,
-                net.java.games.input.Component.Identifier.Key.C,
-                incrementCounterAction,
-                InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
-        im.associateAction(kbName,
-                net.java.games.input.Component.Identifier.Key.V,
-                cameraChangeView,
-                InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
     }
 
+    //============== UPDATE ==========================================================================
     @Override
     protected void update(Engine engine) {
         // build and set HUD
@@ -273,10 +342,11 @@ public class myGame extends VariableFrameRateGame {
         counterStr = Integer.toString(counter);
         im.update(elapsTime);
         checkDistance();
-        muberGame();
-        dispStr = hudContent("Time" + elapsTimeSec +"  Visited Planets = " + counterStr);
+        muberGame(elapsTimeSec);
+        dispStr = hudContent("Time = " + elapsTimeSec +"  Visited Planets = " + counterStr + "   Muber Points = " + muberTotal );
         rs.setHUD(dispStr, 13, 13);
     }
+    //==============================================================================================
 
     // ======== This will update the HUD when the player gets too far from the dolphin. ===============
     private String hudContent(String display){
@@ -355,21 +425,24 @@ public class myGame extends VariableFrameRateGame {
                 getGpuShaderProgram(GpuShaderProgram.Type.RENDERING));
 
         float[] vertices = new float[]{
-                -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f
-                -1.0f, .5f, 0.0f, 1.0f, 0.5f, 0.0f
+                // X Plane
+                1f,0f,0f,0f,0f,0f,
+                0f,0f,0f,1f,0f,0f
+
         };
 
         float[] texcoords = new float[]{
-                0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-                1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f
+                0.0f, 0.0f, 1.0f,
+                0.0f, 0.0f, 1.0f
         };
 
         float[] normals = new float[]{
-                0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-                0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f
+                0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f
+
         };
 
-        int[] indices = new int[] {0,1};
+        int[] indices = new int[] {0,1,2,3};
 
         FloatBuffer vertBuf = BufferUtil.directFloatBuffer(vertices);
         FloatBuffer texBuf = BufferUtil.directFloatBuffer(texcoords);
@@ -382,7 +455,7 @@ public class myGame extends VariableFrameRateGame {
         xBarSec.setIndexBuffer(indexBuf);
 
         Texture tex =
-                eng.getTextureManager().getAssetByPath(textureFiles[new Random().nextInt(textureFiles.length)]);
+                eng.getTextureManager().getAssetByPath("bright-red.jpeg");
         TextureState texState = (TextureState)sm.getRenderSystem().
                 createRenderState(RenderState.Type.TEXTURE);
         texState.setTexture(tex);
@@ -394,6 +467,112 @@ public class myGame extends VariableFrameRateGame {
         xBar.setRenderState(faceState);
 
         return xBar;
+    }
+    //==========================================================================================
+
+    //=========== This will create Y Cordanate Bar as a manual object =========================
+    private ManualObject makeYBarEngine (Engine eng, SceneManager sm) throws IOException {
+        ManualObject yBar = sm.createManualObject("YBar");
+        ManualObjectSection yBarSec = yBar.createManualSection("SquareSection");
+        yBar.setGpuShaderProgram(sm.getRenderSystem().
+                getGpuShaderProgram(GpuShaderProgram.Type.RENDERING));
+
+        float[] vertices = new float[]{
+                // Y Plane
+                0f,1f,0f,0f,0f,0f,
+                0f,0f,0f,0f,1f,0f
+
+        };
+
+        float[] texcoords = new float[]{
+                0.0f, 0.0f, 1.0f,
+                0.0f, 0.0f, 1.0f
+        };
+
+        float[] normals = new float[]{
+                1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f
+
+        };
+
+        int[] indices = new int[] {0,1,2,3};
+
+        FloatBuffer vertBuf = BufferUtil.directFloatBuffer(vertices);
+        FloatBuffer texBuf = BufferUtil.directFloatBuffer(texcoords);
+        FloatBuffer normBuf = BufferUtil.directFloatBuffer(normals);
+        IntBuffer indexBuf = BufferUtil.directIntBuffer(indices);
+
+        yBarSec.setVertexBuffer(vertBuf);
+        yBarSec.setTextureCoordsBuffer(texBuf);
+        yBarSec.setNormalsBuffer(normBuf);
+        yBarSec.setIndexBuffer(indexBuf);
+
+        Texture tex =
+                eng.getTextureManager().getAssetByPath("default.png");
+        TextureState texState = (TextureState)sm.getRenderSystem().
+                createRenderState(RenderState.Type.TEXTURE);
+        texState.setTexture(tex);
+        FrontFaceState faceState = (FrontFaceState) sm.getRenderSystem().
+                createRenderState(RenderState.Type.FRONT_FACE);
+
+        yBar.setDataSource(DataSource.INDEX_BUFFER);
+        yBar.setRenderState(texState);
+        yBar.setRenderState(faceState);
+
+        return yBar;
+    }
+    //==========================================================================================
+
+    //=========== This will create Z Cordanate Bar as a manual object =========================
+    private ManualObject makeZBarEngine (Engine eng, SceneManager sm) throws IOException {
+        ManualObject zBar = sm.createManualObject("ZBar");
+        ManualObjectSection zBarSec = zBar.createManualSection("SquareSection");
+        zBar.setGpuShaderProgram(sm.getRenderSystem().
+                getGpuShaderProgram(GpuShaderProgram.Type.RENDERING));
+
+        float[] vertices = new float[]{
+                // Z Plane
+                0f,0f,1f,0f,0f,0f,
+                0f,0f,0f,0f,0f,1f
+
+        };
+
+        float[] texcoords = new float[]{
+                0.0f, 0.0f, 1.0f,
+                0.0f, 0.0f, 1.0f
+        };
+
+        float[] normals = new float[]{
+                1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f
+
+        };
+
+        int[] indices = new int[] {0,1,2,3};
+
+        FloatBuffer vertBuf = BufferUtil.directFloatBuffer(vertices);
+        FloatBuffer texBuf = BufferUtil.directFloatBuffer(texcoords);
+        FloatBuffer normBuf = BufferUtil.directFloatBuffer(normals);
+        IntBuffer indexBuf = BufferUtil.directIntBuffer(indices);
+
+        zBarSec.setVertexBuffer(vertBuf);
+        zBarSec.setTextureCoordsBuffer(texBuf);
+        zBarSec.setNormalsBuffer(normBuf);
+        zBarSec.setIndexBuffer(indexBuf);
+
+        Texture tex =
+                eng.getTextureManager().getAssetByPath("bright-green.jpeg");
+        TextureState texState = (TextureState)sm.getRenderSystem().
+                createRenderState(RenderState.Type.TEXTURE);
+        texState.setTexture(tex);
+        FrontFaceState faceState = (FrontFaceState) sm.getRenderSystem().
+                createRenderState(RenderState.Type.FRONT_FACE);
+
+        zBar.setDataSource(DataSource.INDEX_BUFFER);
+        zBar.setRenderState(texState);
+        zBar.setRenderState(faceState);
+
+        return zBar;
     }
     //==========================================================================================
 
@@ -409,9 +588,13 @@ public class myGame extends VariableFrameRateGame {
                 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f, // Bot right
                 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f, // Bot back
                 -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Bot left
+                -1.0f, 2.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f,
                 -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 2.0f, -1.0f, // Top Left
+                1.0f, 2.0f, -1.0f,1.0f, 1.0f, 1.0f,1.0f, 1.0f, -1.0f,
                 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 2.0f, -1.0f, // Top Right
+                -1.0f, 1.0f, 1.0f,1.0f, 1.0f, 1.0f,-1.0f, 1.0f, -1.0f,
                 -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, //UF
+                1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f,
                 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f //UR
 
         };
@@ -423,8 +606,12 @@ public class myGame extends VariableFrameRateGame {
                 0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 1.0f,
                 0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 1.0f,
                 0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 1.0f,
-                0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 1.0f,
-                0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 1.0f,
+                0.0f, 0.5f, 1.0f,0.0f, 0.0f, 1.0f,
+                0.0f, 0.5f, 1.0f,0.0f, 0.0f, 1.0f,
+                0.0f, 0.5f, 1.0f,0.0f, 0.0f, 1.0f,
+                0.0f, 0.5f, 1.0f,0.0f, 0.0f, 1.0f,
+                0.0f, 0.5f, 1.0f,0.0f, 0.0f, 1.0f,
+                0.0f, 0.5f, 1.0f,0.0f, 0.0f, 1.0f,
         };
 
         float[] normals = new float[]{
@@ -434,11 +621,15 @@ public class myGame extends VariableFrameRateGame {
                 -1.0f, 1.0f, 0.0f, -1.0f, 1.0f, 0.0f, -1.0f, 1.0f, 0.0f,
                 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,1.0f, 0.0f, 0.0f,
                 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,1.0f, 0.0f, 0.0f,
+                1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,1.0f, 0.0f, 0.0f,
+                1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,1.0f, 0.0f, 0.0f,
+                0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+                0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
                 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
                 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f
         };
 
-        int[] indices = new int[] { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23};
+        int[] indices = new int[] { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35};
 
         FloatBuffer vertBuf = BufferUtil.directFloatBuffer(vertices);
         FloatBuffer texBuf = BufferUtil.directFloatBuffer(texcoords);
@@ -467,27 +658,32 @@ public class myGame extends VariableFrameRateGame {
     //==========================================================================================
 
     //============ My Muber Game Logic =========================================================
-    private void muberGame(){
+    private void muberGame(float time){
 
         if(getEngine().getSceneManager().getCamera("MainCamera").getMode() == 'c'){
-            float distanceLimit = 1.00f;
+            float timeGame = time;
+            float distanceLimit = 1.0f;
             float distanceX, distanceZ, distanceY;
             Vector3 cameraPosition = getEngine().getSceneManager().getCamera("MainCamera").getPo();
 
             for(int i = 0; i < maxPlanets; i++){
                 if(getEngine().getSceneManager().getSceneNode("babycarry").getAttachedObjectCount() != 1){
+
                         SceneNode muberNode = getEngine().getSceneManager().getSceneNode("diamondNode" + i);
                         distanceX = Math.abs(cameraPosition.x() - muberNode.getLocalPosition().x());
-                        distanceY = Math.abs(cameraPosition.x() - muberNode.getLocalPosition().x());
+                        distanceY = Math.abs(cameraPosition.y() - muberNode.getLocalPosition().y());
                         distanceZ = Math.abs(cameraPosition.z() - muberNode.getLocalPosition().z());
-                        if (distanceX < distanceLimit && distanceZ < distanceLimit && distanceY < distanceLimit){
+
+//                        if (distanceX < distanceLimit && distanceZ < distanceLimit && distanceY < distanceLimit){
                             if (!isPickedUp(getEngine().getSceneManager().getSceneNode("myPlanet" + i + "Node"))) {
                                 mubersPicked[i] = getEngine().getSceneManager().getSceneNode("myPlanet" + i + "Node");
                                 getEngine().getSceneManager().getSceneNode("babycarry").attachObject(muberNode.getAttachedObject(0));
                                 nullNode = getEngine().getSceneManager().getSceneNode("myPlanet" + i + "Node");
                                 getEngine().getSceneManager().getSceneNode("myPlanet" + i + "Node").detachAllChildren();
-                                getEngine().getSceneManager().getSceneNode("babycarry").scale(.05f,.05f,.05f);
-                            }
+                                System.out.println( getEngine().getSceneManager().getSceneNode("babycarry").getLocalScale());
+                                if(getEngine().getSceneManager().getSceneNode("babycarry").getLocalScale().x() == 1 )
+                                    getEngine().getSceneManager().getSceneNode("babycarry").scale(.05f,.05f,.05f);
+//                            }
                         }
 
                 } else if(getEngine().getSceneManager().getSceneNode("babycarry").getAttachedObjectCount() == 1){
@@ -501,7 +697,8 @@ public class myGame extends VariableFrameRateGame {
                             distanceZ = Math.abs(camera.getPo().z() - planetPosition.z());
 
                             if(distanceX < distantLimit && distanceZ < distantLimit && planetAmount[k] == nullNode){
-                                calculatePoints();
+                                calculatePoints(timeGame);
+                                timeCounter = timeGame;
                                 getEngine().getSceneManager().getSceneNode("babycarry").detachAllObjects();
                             }
                     }
@@ -518,17 +715,21 @@ public class myGame extends VariableFrameRateGame {
                 pickedUp = true;
             }
         }
-        System.out.println(pickedUp);
         return pickedUp;
     }
 
-    private void calculatePoints(){
-        if(elapsTimeSec <= 6){
+    private void calculatePoints(float time){
+        float currentTime = time;
+        System.out.println(currentTime - timeCounter);
+        if(currentTime - timeCounter <= 10){
             muberPoints = 5;
-        } else if (elapsTimeSec <= 15){
+            muberTotal = muberPoints + muberTotal;
+        } else if (currentTime - timeCounter <= 20){
             muberPoints = 3;
-        } else if (elapsTimeSec > 15){
+            muberTotal = muberPoints + muberTotal;
+        } else if (currentTime - timeCounter > 20){
             muberPoints = 1;
+            muberTotal = muberPoints + muberTotal;
         }
 
     }
@@ -539,8 +740,5 @@ public class myGame extends VariableFrameRateGame {
         counter++;
     }
 
-    public float getElapsTime(){
-        return elapsTimeSec;
-    }
 
 }

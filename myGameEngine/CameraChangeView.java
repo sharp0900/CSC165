@@ -20,8 +20,6 @@ public class CameraChangeView extends AbstractInputAction{
     }
 
     public void performAction(float time, Event e){
-        System.out.println("Camera position has now changed.");
-
         if(camera.getMode() == 'c'){
             camera.setMode('n');
         }else {

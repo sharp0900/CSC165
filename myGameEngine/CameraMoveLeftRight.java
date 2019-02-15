@@ -21,7 +21,7 @@ public class CameraMoveLeftRight extends AbstractInputAction{
 
     public void performAction(float time, Event e){
 
-        if ( e.getValue() <= -0.1){
+        if ( e.getValue() <= -0.1 || e.getComponent().getName().equals("A")){
             if(camera.getMode() == 'c'){
                 if(game.dolphinDistanceLimit()){
                     Vector3f viewVector = camera.getRt();
@@ -35,7 +35,7 @@ public class CameraMoveLeftRight extends AbstractInputAction{
             else{
                 dolphinNode.moveRight(0.1f);
             }
-        } else if (e.getValue() >= 0.1){
+        } else if (e.getValue() >= 0.1 || e.getComponent().getName().equals("D")){
             if(camera.getMode() == 'c'){
                 if(game.dolphinDistanceLimit()){
                     Vector3f viewVector = camera.getRt();

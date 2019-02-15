@@ -33,7 +33,7 @@ public class CameraMoveRoll extends AbstractInputAction {
         float degreeAmount = .7f;
         Angle rotAmt = Degreef.createFrom(degreeAmount);
 
-        if(event.getValue() < -0.1){
+        if(event.getValue() < -0.1 || event.getComponent().getName().equals("E") ){
             if (camera.getMode() == 'c'){
                 tilt = 1f;
                 Vector3 upFinal = (up.rotate(Degreef.createFrom(degreeAmount * tilt), fd)).normalize();
@@ -44,7 +44,7 @@ public class CameraMoveRoll extends AbstractInputAction {
                 dolphinCamNode.roll(rotAmt);
             }
 
-        }else if (event.getValue() > 0.1){
+        }else if (event.getValue() > 0.1 || event.getComponent().getName().equals("Q")){
             rotAmt = Degreef.createFrom(-degreeAmount);
 
             if (camera.getMode() == 'c'){
