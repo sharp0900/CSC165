@@ -88,6 +88,7 @@ public class myGame extends VariableFrameRateGame  implements
     @Override
     protected void setupCameras(SceneManager sm, RenderWindow rw) {
         SceneNode rootNode = sm.getRootSceneNode();
+        RenderSystem rs = sm.getRenderSystem();
 
         // Camera 1
         Camera camera = sm.createCamera("MainCamera", Projection.PERSPECTIVE);
@@ -476,10 +477,10 @@ public class myGame extends VariableFrameRateGame  implements
         };
 
         float[] normals = new float[]{
-                0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
                 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
                 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f
+                0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f
 
         };
 
@@ -574,7 +575,7 @@ public class myGame extends VariableFrameRateGame  implements
          centerX = left + widt / 2;
          centerY = top + hei / 2;
         isRecentering = true;
-        Canvas canvas = rs.getCanvas();
+        canvas = rs.getCanvas();
         robot.mouseMove(centerX,centerY);
     }
 
@@ -605,6 +606,8 @@ public class myGame extends VariableFrameRateGame  implements
 
     @Override
     public void mouseMoved(com.jogamp.newt.event.MouseEvent e) {
+        System.out.println("HERRRRRRRRRRRRRRRRRRRRRRRRRRE");
+
         if (isRecentering &&
                 centerX == e.getX() && centerY == e.getY())
         { isRecentering = false; } // mouse recentered, recentering complete
