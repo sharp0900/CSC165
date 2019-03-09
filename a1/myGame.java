@@ -53,10 +53,6 @@ public class myGame extends VariableFrameRateGame {
 
     public myGame() {
         super();
-        System.out.println("press T to render triangles");
-        System.out.println("press L to render lines");
-        System.out.println("press P to render points");
-        System.out.println("press C to increment counter");
     }
 
     public static void main(String[] args) {
@@ -272,7 +268,7 @@ public class myGame extends VariableFrameRateGame {
                         c,
                         Component.Identifier.Key.SPACE,
                         new CameraChangeView(this),
-                        InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+                        InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 
                 im.associateAction(
                         c,
@@ -680,7 +676,6 @@ public class myGame extends VariableFrameRateGame {
                                 getEngine().getSceneManager().getSceneNode("babycarry").attachObject(muberNode.getAttachedObject(0));
                                 nullNode = getEngine().getSceneManager().getSceneNode("myPlanet" + i + "Node");
                                 getEngine().getSceneManager().getSceneNode("myPlanet" + i + "Node").detachAllChildren();
-                                System.out.println( getEngine().getSceneManager().getSceneNode("babycarry").getLocalScale());
                                 if(getEngine().getSceneManager().getSceneNode("babycarry").getLocalScale().x() == 1 )
                                     getEngine().getSceneManager().getSceneNode("babycarry").scale(.05f,.05f,.05f);
 //                            }
@@ -720,7 +715,6 @@ public class myGame extends VariableFrameRateGame {
 
     private void calculatePoints(float time){
         float currentTime = time;
-        System.out.println(currentTime - timeCounter);
         if(currentTime - timeCounter <= 10){
             muberPoints = 5;
             muberTotal = muberPoints + muberTotal;
