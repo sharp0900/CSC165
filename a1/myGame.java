@@ -1,9 +1,13 @@
 package a1;
-import com.jogamp.newt.event.MouseEvent;
+
+
+
 import com.jogamp.newt.event.MouseListener;
 import myGameEngine.*;
 
 import java.awt.*;
+import java.awt.event.MouseEvent;
+
 import java.awt.event.MouseMotionListener;
 import java.io.*;
 
@@ -25,12 +29,15 @@ import ray.rage.rendersystem.states.*;
 import ray.rage.asset.texture.*;
 import ray.input.*;
 
+import javax.swing.*;
+
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class myGame extends VariableFrameRateGame implements MouseMotionListener, MouseListener{
+public class myGame extends VariableFrameRateGame  implements
+        MouseListener, MouseMotionListener {
 
     // to minimize variable allocation in update()
     GL4RenderSystem rs;
@@ -38,10 +45,16 @@ public class myGame extends VariableFrameRateGame implements MouseMotionListener
     float elapsTime = 0.0f, timeCounter = 0.0f;
     boolean stop = false;
     String elapsTimeStr, counterStr, dispStr;
-    int elapsTimeSec, counter = 0, maxPlanets = 5, muberPoints = 0, muberTotal = 0;
+    int elapsTimeSec, counter = 0, maxPlanets = 5, muberPoints = 0, muberTotal = 0, centerX = 0, centerY = 0;
     SceneNode nullNode;
 
     private Camera3Pcontroller orbitController;
+    private Robot robot; // these are additional variable declarations
+    private Canvas canvas;
+    private RenderWindow rw;
+    private float prevMouseX, prevMouseY, curMouseX, curMouseY;
+    private boolean isRecentering;
+
 
     // Array to hold planets
     SceneNode[] planetAmount = new SceneNode[maxPlanets];
@@ -94,6 +107,8 @@ public class myGame extends VariableFrameRateGame implements MouseMotionListener
         cameraN2.attachObject(camera2);
         camera2.setMode('n');
         camera2.getFrustum().setFarClipDistance(1000.0f);
+
+        initMouseMode(rs, rw);
     }
 
     protected void setupWindowViewports(RenderWindow rw)
@@ -212,6 +227,7 @@ public class myGame extends VariableFrameRateGame implements MouseMotionListener
         state = (TextureState) rs.createRenderState(RenderState.Type.TEXTURE);
         state.setTexture(tm.getAssetByPath("Dolphin_HighPolyUV_Muber.jpg"));
         dolphinE.setRenderState(state);
+
 
         // This will call a function that will create the inputs for the game.
         setupInputs();
@@ -518,45 +534,109 @@ public class myGame extends VariableFrameRateGame implements MouseMotionListener
 
     //============== Mouse Movement =====================================================
 
+    private void initMouseMode(RenderSystem s, RenderWindow w) {
+         rw = w;
+         rs = (GL4RenderSystem) s;
+        Viewport v = rw.getViewport(1);
+        int left = rw.getLocationLeft();
+        int top = rw.getLocationTop();
+        int widt = v.getActualScissorWidth();
+        int hei = v.getActualScissorHeight();
+         centerX = left + widt / 2;
+         centerY = top + hei / 2;
+        isRecentering = false;
+        try // note that some platforms may not support the Robot class
+        {
+            robot = new Robot();
+        } catch (AWTException ex) {
+            throw new RuntimeException("Couldn't create Robot!");
+        }
+        recenterMouse();
+        prevMouseX = centerX; // 'prevMouse' defines the initial
+        prevMouseY = centerY; // mouse position
+        // also change the cursor
+        Image faceImage = new
+                ImageIcon("./assets/images/face.gif").getImage();
+        Cursor faceCursor = Toolkit.getDefaultToolkit().
+                createCustomCursor(faceImage, new Point(0,0), "FaceCursor");
+        canvas = rs.getCanvas();
+        canvas.setCursor(faceCursor);
+    }
+
+    private void recenterMouse()
+    {// use the robot to move the mouse to the center point.
+// Note that this generates one MouseEvent.
+        Viewport v = rw.getViewport(1);
+        int left = rw.getLocationLeft();
+        int top = rw.getLocationTop();
+        int widt = v.getActualScissorWidth();
+        int hei = v.getActualScissorHeight();
+         centerX = left + widt / 2;
+         centerY = top + hei / 2;
+        isRecentering = true;
+        Canvas canvas = rs.getCanvas();
+        robot.mouseMove(centerX,centerY);
+    }
+
     @Override
-    public void mouseClicked(MouseEvent mouseEvent) {
+    public void mouseClicked(com.jogamp.newt.event.MouseEvent mouseEvent) {
 
     }
 
     @Override
-    public void mouseEntered(MouseEvent mouseEvent) {
+    public void mouseEntered(com.jogamp.newt.event.MouseEvent mouseEvent) {
 
     }
 
     @Override
-    public void mouseExited(MouseEvent mouseEvent) {
+    public void mouseExited(com.jogamp.newt.event.MouseEvent mouseEvent) {
 
     }
 
     @Override
-    public void mousePressed(MouseEvent mouseEvent) {
+    public void mousePressed(com.jogamp.newt.event.MouseEvent mouseEvent) {
 
     }
 
     @Override
-    public void mouseReleased(MouseEvent mouseEvent) {
+    public void mouseReleased(com.jogamp.newt.event.MouseEvent mouseEvent) {
 
     }
 
     @Override
-    public void mouseMoved(MouseEvent mouseEvent) {
+    public void mouseMoved(com.jogamp.newt.event.MouseEvent e) {
+        if (isRecentering &&
+                centerX == e.getX() && centerY == e.getY())
+        { isRecentering = false; } // mouse recentered, recentering complete
+        else
+        { // event was due to a user mouse-move, and must be processed
+            curMouseX = e.getX();
+            curMouseY = e.getY();
+            float mouseDeltaX = prevMouseX - curMouseX;
+            float mouseDeltaY = prevMouseY - curMouseY;
+//            yaw(mouseDeltaX);
+//            pitch(mouseDeltaY);
+            prevMouseX = curMouseX;
+            prevMouseY = curMouseY;
+            System.out.println(curMouseX);
+            System.out.println(curMouseY);
+// tell robot to put the cursor to the center (since user just moved it)
+            recenterMouse();
+            prevMouseX = centerX; //reset prev to center
+            prevMouseY = centerY;
+        }
+    }
+
+    @Override
+    public void mouseDragged(com.jogamp.newt.event.MouseEvent mouseEvent) {
 
     }
 
     @Override
-    public void mouseDragged(MouseEvent mouseEvent) {
+    public void mouseWheelMoved(com.jogamp.newt.event.MouseEvent mouseEvent) {
 
     }
 
-    @Override
-    public void mouseWheelMoved(MouseEvent mouseEvent) {
-
-    }
 
     //============== Mouse Movement END =====================================================
 }
