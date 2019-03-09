@@ -1,9 +1,13 @@
 package a1;
+import com.jogamp.newt.event.MouseEvent;
+import com.jogamp.newt.event.MouseListener;
 import myGameEngine.*;
 
 import java.awt.*;
+import java.awt.event.MouseMotionListener;
 import java.io.*;
 
+import myGameEngine.Camera.*;
 import net.java.games.input.Component;
 import net.java.games.input.Controller;
 import ray.rage.*;
@@ -26,7 +30,7 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class myGame extends VariableFrameRateGame {
+public class myGame extends VariableFrameRateGame implements MouseMotionListener, MouseListener{
 
     // to minimize variable allocation in update()
     GL4RenderSystem rs;
@@ -36,6 +40,8 @@ public class myGame extends VariableFrameRateGame {
     String elapsTimeStr, counterStr, dispStr;
     int elapsTimeSec, counter = 0, maxPlanets = 5, muberPoints = 0, muberTotal = 0;
     SceneNode nullNode;
+
+    private Camera3Pcontroller orbitController;
 
     // Array to hold planets
     SceneNode[] planetAmount = new SceneNode[maxPlanets];
@@ -94,7 +100,8 @@ public class myGame extends VariableFrameRateGame {
     { rw.addKeyListener(this);
         Viewport topViewport = rw.getViewport(0);
         topViewport.setDimensions(.51f, .01f, .99f, .49f); // B,L,W,H
-        topViewport.setClearColor(new Color(1.0f, .7f, .7f));
+        topViewport.setClearColor(new Color(0.0f, .7f, .7f));
+
         Viewport botViewport = rw.createViewport(.01f, .01f, .99f, .49f);
         botViewport.setClearColor(new Color(.5f, 1.0f, .5f));
     }
@@ -126,12 +133,31 @@ public class myGame extends VariableFrameRateGame {
         dolphinN.moveBackward(2.0f);
         dolphinN.attachObject(dolphinE);
 
-        SceneNode dolphinCN = dolphinN.createChildSceneNode("dolphinCameraNode");
-        dolphinCN.setLocalPosition(0.0f, 0.5f, -0.3f);
-        dolphinCN.attachObject(getEngine().getSceneManager().getCamera("MainCamera"));
+//        SceneNode dolphinCN = dolphinN.createChildSceneNode("dolphinCameraNode");
+//        dolphinCN.setLocalPosition(0.0f, 0.5f, -0.3f);
+//        dolphinCN.attachObject(getEngine().getSceneManager().getCamera("MainCamera"));
 
         /*=======================================================================*/
 
+        //========== DOLPHIN SECONED PLAYER AND CAMERA =====================================//
+
+        Entity dolphinTwoE = sm.createEntity("myDolphinTwo", "dolphinHighPoly.obj");
+        dolphinE.setPrimitive(Primitive.TRIANGLES);
+
+        SceneNode dolphinTwoN = sm.getRootSceneNode().createChildSceneNode("dolphinTwoENode");
+        dolphinTwoN.moveBackward(2.0f);
+        dolphinTwoN.attachObject(dolphinTwoE);
+//
+//        SceneNode dolphinTwoCN = dolphinTwoN.createChildSceneNode("dolphinCameraTwoNode");
+//        dolphinTwoCN.setLocalPosition(0.0f, 0.5f, -0.3f);
+//        dolphinTwoCN.attachObject(getEngine().getSceneManager().getCamera("MainCamera2"));
+
+        //=======================================================================//
+
+        setupOrbitCamera(eng, sm);
+
+        dolphinN.yaw(Degreef.createFrom(45.0f));
+        dolphinTwoN.yaw(Degreef.createFrom(45.0f));
         /*========= PLANETS ==================================================== */
         for (int i = 0; i < maxPlanets; i++){
             planetE[i] = sm.createEntity("myPlanet" + i, "earth.obj");
@@ -192,11 +218,26 @@ public class myGame extends VariableFrameRateGame {
 
     }
 
+    protected void setupOrbitCamera(Engine eng, SceneManager sm) {
+        im = new GenericInputManager();
+        String gpName = im.getFirstGamepadName();
+        SceneNode dolphinN = sm.getSceneNode("dolphinENode");
+        SceneNode cameraN = sm.getSceneNode("MainCameraNode");
+        Camera camera = sm.getCamera("MainCamera");
+        orbitController =
+                new Camera3Pcontroller(camera, cameraN, dolphinN, gpName, im);
+
+        SceneNode dolphinTwoN = sm.getSceneNode("dolphinTwoENode");
+        SceneNode cameraTwoN = sm.getSceneNode("MainCamera2Node");
+        Camera camera2 = sm.getCamera("MainCamera2");
+        String gpName2 = im.getMouseName();
+        orbitController =
+                new Camera3Pcontroller(camera2, cameraTwoN, dolphinTwoN, gpName2, im);
+    }
+
     protected void setupInputs(){
         // build some action objects for doing things in response to user input
         QuitGameAction quitGameAction = new QuitGameAction(this);
-        IncrementCounterAction incrementCounterAction = new IncrementCounterAction(this);
-        CameraChangeView cameraChangeView = new CameraChangeView(this);
         CameraMoveFowardBack cameraMoveFoward = new CameraMoveFowardBack(this);
         CameraMoveLeftRight cameraMoveLeftRight = new CameraMoveLeftRight(this);
         CameraTiltLeftRight cameraTiltLeftRight = new CameraTiltLeftRight(this);
@@ -205,7 +246,7 @@ public class myGame extends VariableFrameRateGame {
         CameraMoveRoll cameraMoveRoll = new CameraMoveRoll(this);
 
         // Creates and sets up inputs.
-        im = new GenericInputManager();
+        //im = new GenericInputManager();
         ArrayList controllers = im.getControllers();
         for (int i = 0; i < controllers.size(); i++) {
             Controller c = (Controller)controllers.get(i);
@@ -282,31 +323,31 @@ public class myGame extends VariableFrameRateGame {
                     net.java.games.input.Component.Identifier.Button._9,
                     quitGameAction,
                     InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
-            im.associateAction(c,
-                    net.java.games.input.Component.Identifier.Button._3,
-                    cameraReset,
-                    InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
-            im.associateAction(c,
-                    Component.Identifier.Axis.Y,
-                    cameraMoveFoward,
-                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-            im.associateAction(c,
-                    Component.Identifier.Axis.X,
-                    cameraMoveLeftRight,
-                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-            im.associateAction(c,
-                    Component.Identifier.Axis.RX,
-                    cameraTiltLeftRight,
-                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-            im.associateAction(c,
-                    Component.Identifier.Axis.RY,
-                    cameraTiltUpDown,
-                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-            im.associateAction(c,
-                    Component.Identifier.Axis.Z,
-                    cameraMoveRoll,
-                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-         }
+//            im.associateAction(c,
+//                    net.java.games.input.Component.Identifier.Button._3,
+//                    cameraReset,
+//                    InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+//            im.associateAction(c,
+//                    Component.Identifier.Axis.Y,
+//                    cameraMoveFoward,
+//                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+//            im.associateAction(c,
+//                    Component.Identifier.Axis.X,
+//                    cameraMoveLeftRight,
+//                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+//            im.associateAction(c,
+//                    Component.Identifier.Axis.RX,
+//                    cameraTiltLeftRight,
+//                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+//            im.associateAction(c,
+//                    Component.Identifier.Axis.RY,
+//                    cameraTiltUpDown,
+//                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+//            im.associateAction(c,
+//                    Component.Identifier.Axis.Z,
+//                    cameraMoveRoll,
+//                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+            }
         }
     }
 
@@ -321,6 +362,7 @@ public class myGame extends VariableFrameRateGame {
         counterStr = Integer.toString(counter);
         im.update(elapsTime);
         //checkDistance();
+        orbitController.updateCameraPosition();
         dispStr = hudContent("Time = " + elapsTimeSec +"  Visited Planets = " + counterStr + "   Muber Points = " + muberTotal );
         rs.setHUD(dispStr, 13, 13);
         rs.setHUD2(dispStr, 15, (rs.getRenderWindow().getViewport(0).getActualHeight() + 25));
@@ -474,5 +516,47 @@ public class myGame extends VariableFrameRateGame {
         counter++;
     }
 
+    //============== Mouse Movement =====================================================
 
+    @Override
+    public void mouseClicked(MouseEvent mouseEvent) {
+
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent mouseEvent) {
+
+    }
+
+    @Override
+    public void mouseExited(MouseEvent mouseEvent) {
+
+    }
+
+    @Override
+    public void mousePressed(MouseEvent mouseEvent) {
+
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent mouseEvent) {
+
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent mouseEvent) {
+
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent mouseEvent) {
+
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseEvent mouseEvent) {
+
+    }
+
+    //============== Mouse Movement END =====================================================
 }

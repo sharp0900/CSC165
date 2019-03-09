@@ -1,4 +1,4 @@
-package myGameEngine;
+package myGameEngine.Camera;
 import a1.*;
 
 import net.java.games.input.Event;
@@ -19,7 +19,7 @@ public class CameraTiltUpDown extends AbstractInputAction {
     public CameraTiltUpDown(myGame g){
         game = g;
         camera = g.getEngine().getSceneManager().getCamera("MainCamera");
-        dolphinCamNode = g.getEngine().getSceneManager().getSceneNode("dolphinCameraNode");
+//        dolphinCamNode = g.getEngine().getSceneManager().getSceneNode("dolphinCameraNode");
     }
 
     @Override

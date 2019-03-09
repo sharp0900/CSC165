@@ -1,4 +1,4 @@
-package myGameEngine;
+package myGameEngine.Camera;
 import a1.myGame;
 import ray.input.action.AbstractInputAction;
 import net.java.games.input.Event;

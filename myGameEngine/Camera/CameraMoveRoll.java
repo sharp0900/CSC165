@@ -1,4 +1,4 @@
-package myGameEngine;
+package myGameEngine.Camera;
 import a1.*;
 
 import net.java.games.input.Event;

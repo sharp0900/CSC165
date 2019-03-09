@@ -1,4 +1,4 @@
-package myGameEngine;
+package myGameEngine.Camera;
 import a1.myGame;
 import ray.input.action.AbstractInputAction;
 import net.java.games.input.Event;
@@ -11,20 +11,31 @@ public class CameraMoveFowardBack extends AbstractInputAction{
     private myGame game;
     private Camera camera;
     SceneNode dolphinNode;
+    SceneNode dolphinNodeTwo;
 
     public CameraMoveFowardBack(myGame g){
         game = g;
         camera = g.getEngine().getSceneManager().getCamera("MainCamera");
         dolphinNode = game.getEngine().getSceneManager().getSceneNode("dolphinENode");
+        dolphinNodeTwo = game.getEngine().getSceneManager().getSceneNode("dolphinTwoENode");
     }
 
     public void performAction(float time, Event e){
 
+
         if ( e.getValue() <= -0.1 || e.getComponent().getName().equals("W")){
+            if(e.getValue() <= -0.1){
                 dolphinNode.moveForward(0.1f);
+            }else{
+                dolphinNodeTwo.moveForward(0.1f);
+            }
         }
         else if (e.getValue() >= 0.1 || e.getComponent().getName().equals("S")){
+            if(e.getValue() >= 0.1){
                 dolphinNode.moveBackward(0.1f);
+            }else{
+                dolphinNodeTwo.moveBackward(0.1f);
+            }
         }
     }
 }

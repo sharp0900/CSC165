@@ -1,4 +1,4 @@
-package myGameEngine;
+package myGameEngine.Camera;
 import a1.myGame;
 import ray.input.action.AbstractInputAction;
 import net.java.games.input.Event;
@@ -10,12 +10,12 @@ public class CameraChangeView extends AbstractInputAction{
     private myGame game;
     private Camera camera;
     private SceneNode nodeDolphin;
-    private SceneNode nodeCamearaDolphin;
+//    private SceneNode nodeCamearaDolphin;
 
     public CameraChangeView(myGame g){
         game = g;
         nodeDolphin = g.getEngine().getSceneManager().getSceneNode("dolphinENode");
-        nodeCamearaDolphin =  g.getEngine().getSceneManager().getSceneNode("dolphinCameraNode");
+//        nodeCamearaDolphin =  g.getEngine().getSceneManager().getSceneNode("dolphinCameraNode");
         camera = g.getEngine().getSceneManager().getCamera("MainCamera");
     }
 

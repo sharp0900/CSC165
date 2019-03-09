@@ -1,5 +1,6 @@
-package myGameEngine;
+package myGameEngine.Camera;
 import a1.myGame;
+import net.java.games.input.Component;
 import ray.input.InputManager;
 import ray.input.action.AbstractInputAction;
 import ray.input.action.Action;
@@ -31,10 +32,14 @@ public class Camera3Pcontroller {
         updateCameraPosition();
     }
 
-    private void setupInput(InputManager im, String cn)
-    { Action orbitAAction = new OrbitAroundAction();
+    private void setupInput(InputManager im, String cn) {
+        Action orbitAAction = new OrbitAroundAction();
+        Action orbitAUDction = new OrbitUpDownAction();
         im.associateAction(cn,
-                net.java.games.input.Component.Identifier.Axis.RX, orbitAAction,
+                Component.Identifier.Axis.RX, orbitAAction,
+                InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+        im.associateAction(cn,
+                Component.Identifier.Axis.RY, orbitAUDction,
                 InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 // similar input set up for OrbitRadiasAction, OrbitElevationAction
     }
@@ -53,7 +58,8 @@ public class Camera3Pcontroller {
     private class OrbitAroundAction extends AbstractInputAction
     { // Moves the camera around the target (changes camera azimuth).
         public void performAction(float time, net.java.games.input.Event evt)
-        { float rotAmount;
+        {
+            float rotAmount;
             if (evt.getValue() < -0.2)
             { rotAmount=-0.2f; }
             else
@@ -64,6 +70,25 @@ public class Camera3Pcontroller {
             }
             cameraAzimuth += rotAmount;
             cameraAzimuth = cameraAzimuth % 360;
+            updateCameraPosition();
+        }
+    }
+
+    private class OrbitUpDownAction extends AbstractInputAction
+    { // Moves the camera around the target (changes camera azimuth).
+        public void performAction(float time, net.java.games.input.Event evt)
+        {
+            float rotAmount;
+            if (evt.getValue() < -0.2)
+            { rotAmount=-0.2f; }
+            else
+            { if (evt.getValue() > 0.2)
+            { rotAmount=0.2f; }
+            else
+            { rotAmount=0.0f; }
+            }
+            cameraElevation += rotAmount;
+            cameraElevation = cameraElevation % 360;
             updateCameraPosition();
         }
     }
