@@ -12,6 +12,7 @@ import java.awt.event.MouseMotionListener;
 import java.io.*;
 
 import myGameEngine.Camera.*;
+import myGameEngine.NodeController.TeleportController;
 import net.java.games.input.Component;
 import net.java.games.input.Controller;
 import ray.rage.*;
@@ -60,6 +61,7 @@ public class myGame extends VariableFrameRateGame  implements
     SceneNode[] planetAmount = new SceneNode[maxPlanets];
     // Array to hold planets that have been visited.
     SceneNode[] planetVisited = new SceneNode[maxPlanets];
+    SceneNode[] planetVisitedTwo = new SceneNode[maxPlanets];
 
     String[] textureFiles = {"blue.jpeg","chain-fence.jpeg", "earth-day.jpeg","earth-night.jpeg","hexagons.jpeg", "moon.jpeg", "red.jpeg"};
 
@@ -162,10 +164,6 @@ public class myGame extends VariableFrameRateGame  implements
 
         //=======================================================================//
 
-        setupOrbitCamera(eng, sm);
-
-        dolphinN.yaw(Degreef.createFrom(45.0f));
-        dolphinTwoN.yaw(Degreef.createFrom(45.0f));
         /*========= PLANETS ==================================================== */
         for (int i = 0; i < maxPlanets; i++){
             planetE[i] = sm.createEntity("myPlanet" + i, "earth.obj");
@@ -206,21 +204,24 @@ public class myGame extends VariableFrameRateGame  implements
         /*=======================================================================*/
 
         /*======== ROTATION and Texture Set ====================================================*/
-        RotationController rc = new RotationController(Vector3f.createUnitVectorY(), .02f);
+        //RotationController rc = new RotationController(Vector3f.createUnitVectorY(), .02f);
         for (int i = 0; i < maxPlanets; i++){
             state = (TextureState) rs.createRenderState(RenderState.Type.TEXTURE);
-            rc.addNode(planetAmount[i]);
+            //rc.addNode(planetAmount[i]);
             state.setTexture(tm.getAssetByPath(textureFiles[new Random().nextInt(textureFiles.length)]));
             planetE[i].setRenderState(state);
-
         }
-        sm.addController(rc);
+        //sm.addController(rc);
         /*=======================================================================*/
 
         state = (TextureState) rs.createRenderState(RenderState.Type.TEXTURE);
         state.setTexture(tm.getAssetByPath("Dolphin_HighPolyUV_Muber.jpg"));
         dolphinE.setRenderState(state);
 
+        //====== This will setup the Orbit Camera ================================//
+        setupOrbitCamera(eng, sm);
+        dolphinN.yaw(Degreef.createFrom(45.0f));
+        dolphinTwoN.yaw(Degreef.createFrom(45.0f));
 
         // This will call a function that will create the inputs for the game.
         setupInputs();
@@ -249,6 +250,8 @@ public class myGame extends VariableFrameRateGame  implements
         QuitGameAction quitGameAction = new QuitGameAction(this);
         CameraMoveFowardBack cameraMoveFoward = new CameraMoveFowardBack(this);
         CameraMoveLeftRight cameraMoveLeftRight = new CameraMoveLeftRight(this);
+        CameraMoveFowardBack2 cameraMoveFowardTwo = new CameraMoveFowardBack2(this);
+        CameraMoveLeftRight2 cameraMoveLeftRightTwo = new CameraMoveLeftRight2(this);
         CameraTiltLeftRight cameraTiltLeftRight = new CameraTiltLeftRight(this);
         CameraTiltUpDown cameraTiltUpDown = new CameraTiltUpDown(this);
         CameraReset cameraReset = new CameraReset(this);
@@ -263,42 +266,22 @@ public class myGame extends VariableFrameRateGame  implements
                 im.associateAction(
                         c,
                         Component.Identifier.Key.W,
-                        new CameraMoveFowardBack(this),
+                        new CameraMoveFowardBack2(this),
                         InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
                 im.associateAction(
                         c,
                         Component.Identifier.Key.S,
-                        new CameraMoveFowardBack(this),
+                        new CameraMoveFowardBack2(this),
                         InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
                 im.associateAction(
                         c,
                         Component.Identifier.Key.D,
-                        new CameraMoveLeftRight(this),
+                        new CameraMoveLeftRight2(this),
                         InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
                 im.associateAction(
                         c,
                         Component.Identifier.Key.A,
-                        new CameraMoveLeftRight(this),
-                        InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-                im.associateAction(
-                        c,
-                        Component.Identifier.Key.UP,
-                        new CameraTiltUpDown(this),
-                        InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-                im.associateAction(
-                        c,
-                        Component.Identifier.Key.DOWN,
-                        new CameraTiltUpDown(this),
-                        InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-                im.associateAction(
-                        c,
-                        Component.Identifier.Key.LEFT,
-                        new CameraTiltLeftRight(this),
-                        InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-                im.associateAction(
-                        c,
-                        Component.Identifier.Key.RIGHT,
-                        new CameraTiltLeftRight(this),
+                        new CameraMoveLeftRight2(this),
                         InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 
                 im.associateAction(
@@ -336,14 +319,14 @@ public class myGame extends VariableFrameRateGame  implements
 //                    net.java.games.input.Component.Identifier.Button._3,
 //                    cameraReset,
 //                    InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
-//            im.associateAction(c,
-//                    Component.Identifier.Axis.Y,
-//                    cameraMoveFoward,
-//                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-//            im.associateAction(c,
-//                    Component.Identifier.Axis.X,
-//                    cameraMoveLeftRight,
-//                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+            im.associateAction(c,
+                    Component.Identifier.Axis.Y,
+                    cameraMoveFoward,
+                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+            im.associateAction(c,
+                    Component.Identifier.Axis.X,
+                    cameraMoveLeftRight,
+                    InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 //            im.associateAction(c,
 //                    Component.Identifier.Axis.RX,
 //                    cameraTiltLeftRight,
@@ -371,6 +354,7 @@ public class myGame extends VariableFrameRateGame  implements
         counterStr = Integer.toString(counter);
         im.update(elapsTime);
         checkDistance();
+        checkDistanceTwo();
         orbitController1.updateCameraPosition();
         orbitController2.updateCameraPosition();
         dispStr = hudContent("Time = " + elapsTimeSec +"  Visited Planets = " + counterStr + "   Muber Points = " + muberTotal );
@@ -413,31 +397,52 @@ public class myGame extends VariableFrameRateGame  implements
     }
     //==========================================================================================
 
-    //======== This will check the distant between the player and the planets ================
+    //======== This will check the distant between the player and the planetsa ================
     private void checkDistance(){
         if(getEngine().getSceneManager().getCamera("MainCamera").getMode() == 'n'){
             Vector3 planetPosition;
-            float distanceX, distanceZ,distanceXTwo,distanceZTwo,distantLimit = 1.5f;
+            float distanceX, distanceZ,distantLimit = 1.5f;
             SceneNode dolphin = getEngine().getSceneManager().getSceneNode("dolphinENode");
-            SceneNode dolphinTwo = getEngine().getSceneManager().getSceneNode("dolphinTwoENode");
 
             for (int i = 0; i < maxPlanets; i++){
                 planetPosition = planetAmount[i].getLocalPosition();
                 if (!(visitYet(planetAmount[i]))){
                     distanceX = Math.abs(dolphin.getLocalPosition().x() - planetPosition.x());
                     distanceZ = Math.abs(dolphin.getLocalPosition().z() - planetPosition.z());
-                    distanceXTwo = Math.abs(dolphinTwo.getLocalPosition().x() - planetPosition.x());
-                    distanceZTwo = Math.abs(dolphinTwo.getLocalPosition().z() - planetPosition.z());
                     if(distanceX < distantLimit && distanceZ < distantLimit){
                         planetVisited[i] = planetAmount[i];
-                        incrementCounter();
-                        }
-                    else if(distanceXTwo < distantLimit && distanceZTwo < distantLimit) {
-                        incrementCounter();
+                        //incrementCounter();
+                        RotationController rc = new RotationController(Vector3f.createUnitVectorY(), .02f);
+                        rc.addNode(planetAmount[i]);
+                        getEngine().getSceneManager().addController(rc);
                         }
                     }
                 }
             }
+    }
+
+
+    private void checkDistanceTwo(){
+        if(getEngine().getSceneManager().getCamera("MainCamera2").getMode() == 'n'){
+            Vector3 planetPosition;
+            float distanceX, distanceZ,distantLimit = 1.5f;
+            SceneNode dolphin = getEngine().getSceneManager().getSceneNode("dolphinTwoENode");
+
+            for (int i = 0; i < maxPlanets; i++){
+                planetPosition = planetAmount[i].getLocalPosition();
+                if (!(visitYet(planetAmount[i]))){
+                    distanceX = Math.abs(dolphin.getLocalPosition().x() - planetPosition.x());
+                    distanceZ = Math.abs(dolphin.getLocalPosition().z() - planetPosition.z());
+                    if(distanceX < distantLimit && distanceZ < distantLimit){
+                        planetVisitedTwo[i] = planetAmount[i];
+                        incrementCounter();
+                        TeleportController tc = new TeleportController(getEngine().getSceneManager().getSceneNode("dolphinENode"));
+                        tc.addNode(planetAmount[i]);
+                        getEngine().getSceneManager().addController(tc);
+                    }
+                }
+            }
+        }
     }
     //==========================================================================================
 
@@ -445,7 +450,7 @@ public class myGame extends VariableFrameRateGame  implements
     private boolean visitYet(SceneNode nodePlanet){
         boolean isIn = false;
         for (int i=0; i < maxPlanets; i++){
-            if (nodePlanet == planetVisited[i]){
+            if (nodePlanet == planetVisited[i] || nodePlanet == planetVisitedTwo[i]){
                 isIn = true;
             }
         }

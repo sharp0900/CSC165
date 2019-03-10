@@ -7,24 +7,25 @@ import ray.rage.scene.SceneNode;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
-public class CameraMoveLeftRight extends AbstractInputAction{
+public class CameraMoveFowardBack2 extends AbstractInputAction{
     private myGame game;
     private Camera camera;
     SceneNode dolphinNode;
 
 
-    public CameraMoveLeftRight(myGame g){
+    public CameraMoveFowardBack2(myGame g){
         game = g;
         camera = g.getEngine().getSceneManager().getCamera("MainCamera");
-        dolphinNode = game.getEngine().getSceneManager().getSceneNode("dolphinENode");
+        dolphinNode = game.getEngine().getSceneManager().getSceneNode("dolphinTwoENode");
     }
 
     public void performAction(float time, Event e){
-        if ( e.getValue() <= -0.1){
-            dolphinNode.moveRight(0.1f);
+
+        if (e.getComponent().getName().equals("W")){
+            dolphinNode.moveForward(0.1f);
         }
-        else if (e.getValue() >= 0.1){
-            dolphinNode.moveLeft(0.1f);
+        else if (e.getComponent().getName().equals("S")){
+            dolphinNode.moveBackward(0.1f);
         }
     }
 }
