@@ -14,10 +14,12 @@ public class TeleportController extends AbstractController {
 
     @Override
     protected void updateImpl(float v) {
+        float i = 0;
         for (Node n : super.controlledNodesList)
-        { Vector3 curLocal = Vector3f.createFrom(target.getLocalPosition().x() - .5f, target.getLocalPosition().y(), target.getLocalPosition().z() - .5f);
+        { Vector3 curLocal = Vector3f.createFrom(target.getLocalPosition().x() - .5f + i, target.getLocalPosition().y(), target.getLocalPosition().z() - .5f + i);
             n.setLocalScale(.1f,.1f,.1f);
             n.setLocalPosition(curLocal);
+            i = i -.5f;
         }
     }
 }

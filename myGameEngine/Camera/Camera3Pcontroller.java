@@ -35,14 +35,19 @@ public class Camera3Pcontroller {
     private void setupInput(InputManager im, String cn) {
         Action orbitAAction = new OrbitAroundAction();
         Action orbitAUDction = new OrbitUpDownAction();
+        Action OrbitRadiasAction = new RadiasAction();
         im.associateAction(cn,
                 Component.Identifier.Axis.RX, orbitAAction,
                 InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
         im.associateAction(cn,
                 Component.Identifier.Axis.RY, orbitAUDction,
                 InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+        im.associateAction(cn,
+                Component.Identifier.Axis.Z, OrbitRadiasAction,
+                InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 // similar input set up for OrbitRadiasAction, OrbitElevationAction
     }
+
 
     public void updateCameraPosition()
     { double theta = Math.toRadians(cameraAzimuth); // rot around target
@@ -56,7 +61,7 @@ public class Camera3Pcontroller {
     }
 
     private class OrbitAroundAction extends AbstractInputAction
-    { // Moves the camera around the target (changes camera azimuth).
+    {
         public void performAction(float time, net.java.games.input.Event evt)
         {
             float rotAmount;
@@ -70,6 +75,29 @@ public class Camera3Pcontroller {
             }
             cameraAzimuth += rotAmount;
             cameraAzimuth = cameraAzimuth % 360;
+            updateCameraPosition();
+        }
+    }
+
+    private class RadiasAction extends AbstractInputAction
+    { // Moves the camera around the target (changes camera azimuth).
+        public void performAction(float time, net.java.games.input.Event evt)
+        {
+            float zoomAmount;
+            if (evt.getValue() < -0.2)
+            { zoomAmount=-0.2f; }
+            else
+            { if (evt.getValue() > 0.2)
+            { zoomAmount=0.2f; }
+            else
+            { zoomAmount=0.1f; }
+            }
+            radias += zoomAmount;
+
+            if (radias <= 0){
+                radias = .1f;
+            }
+
             updateCameraPosition();
         }
     }

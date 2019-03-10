@@ -45,8 +45,8 @@ public class myGame extends VariableFrameRateGame  implements
     GenericInputManager im;
     float elapsTime = 0.0f, timeCounter = 0.0f;
     boolean stop = false;
-    String elapsTimeStr, counterStr, dispStr;
-    int elapsTimeSec, counter = 0, maxPlanets = 5, muberPoints = 0, muberTotal = 0, centerX = 0, centerY = 0;
+    String elapsTimeStr, counterStr,counterStrTwo, dispStr,dispStr2;
+    int elapsTimeSec, counter = 0, counterTwo = 0, maxPlanets = 5, muberPoints = 0, muberTotal = 0, centerX = 0, centerY = 0;
     SceneNode nullNode;
 
     private Camera3Pcontroller orbitController1, orbitController2 ;
@@ -131,8 +131,13 @@ public class myGame extends VariableFrameRateGame  implements
         nullNode = sm.getRootSceneNode().createChildSceneNode("NULL");
         /*======================================================================================== */
 
+        //======= Setting up planet group nodes ==========================================================//
+            SceneNode planetGroup = sm.getRootSceneNode().createChildSceneNode("myPlanetGroups");
+        //===============================================================================================//
+
         /*========= Objects to set up planets ==================================================== */
         Entity[] planetE = new Entity[maxPlanets];
+        Entity[] moonsE = new Entity[maxPlanets];
         int maxDistance = 20;
         int minDistance = 2;
         /*=========================================================================================*/
@@ -164,29 +169,49 @@ public class myGame extends VariableFrameRateGame  implements
 
         //=======================================================================//
 
+
         /*========= PLANETS ==================================================== */
+
+
         for (int i = 0; i < maxPlanets; i++){
             planetE[i] = sm.createEntity("myPlanet" + i, "earth.obj");
             planetE[i].setPrimitive(Primitive.TRIANGLES);
         }
 
         for (int i = 0; i < maxPlanets; i++){
-            float scalePlanetNum = new Random().nextFloat() + 0.5f;
-            planetAmount[i] = sm.getRootSceneNode().createChildSceneNode(planetE[i].getName() + "Node");
+            float scalePlanetNum = 0.5f;
+            planetAmount[i] = planetGroup.createChildSceneNode(planetE[i].getName() + "Node");
             planetAmount[i].moveBackward((float)new Random().nextInt((maxDistance - minDistance) + 1) + minDistance);
             planetAmount[i].moveForward((float)new Random().nextInt((maxDistance - minDistance) + 1) + minDistance);
             planetAmount[i].moveLeft((float)new Random().nextInt((maxDistance - minDistance) + 1) + minDistance);
             planetAmount[i].moveRight((float)new Random().nextInt((maxDistance - minDistance) + 1) + minDistance);
             planetAmount[i].scale(scalePlanetNum,scalePlanetNum,scalePlanetNum);
             planetAmount[i].attachObject(planetE[i]);
+
         }
         /*=======================================================================*/
+
+        //=== Moons ============================================================//
+        for (int i = 0; i < maxPlanets; i++){
+            moonsE[i] = sm.createEntity("myMoon" + i, "earth.obj");
+            moonsE[i].setPrimitive(Primitive.TRIANGLES);
+        }
+
+        for (int i = 0; i < maxPlanets; i++){
+            SceneNode moonN =  sm.getSceneNode("myPlanet" + i + "Node").createChildSceneNode("myMoonNode" + i);
+            moonN.scale(0.5f, 0.5f, 0.5f);
+            moonN.setLocalPosition(5f,0f,0f);
+            moonN.attachObject(moonsE[i]);
+
+        }
+
+        //=======================================================================//
 
         /*========= Code to spawn the ground ==================================================== */
         SceneObject xBarE = makeXBarEngine(eng,sm);
         ((ManualObject) xBarE).setPrimitive(Primitive.TRIANGLES);
         SceneNode xBarN = sm.getRootSceneNode().createChildSceneNode("XBar");
-        xBarN.scale(200.0f,200.0f,200.0f);
+        xBarN.scale(200.0f,1f,200.0f);
         xBarN.attachObject(xBarE);
         /*=======================================================================*/
 
@@ -204,14 +229,13 @@ public class myGame extends VariableFrameRateGame  implements
         /*=======================================================================*/
 
         /*======== ROTATION and Texture Set ====================================================*/
-        //RotationController rc = new RotationController(Vector3f.createUnitVectorY(), .02f);
+
+
         for (int i = 0; i < maxPlanets; i++){
             state = (TextureState) rs.createRenderState(RenderState.Type.TEXTURE);
-            //rc.addNode(planetAmount[i]);
             state.setTexture(tm.getAssetByPath(textureFiles[new Random().nextInt(textureFiles.length)]));
             planetE[i].setRenderState(state);
         }
-        //sm.addController(rc);
         /*=======================================================================*/
 
         state = (TextureState) rs.createRenderState(RenderState.Type.TEXTURE);
@@ -230,19 +254,29 @@ public class myGame extends VariableFrameRateGame  implements
 
     protected void setupOrbitCamera(Engine eng, SceneManager sm) {
         im = new GenericInputManager();
-        String gpName = im.getFirstGamepadName();
-        SceneNode dolphinN = sm.getSceneNode("dolphinENode");
-        SceneNode cameraN = sm.getSceneNode("MainCameraNode");
-        Camera camera = sm.getCamera("MainCamera");
-        orbitController1 =
-                new Camera3Pcontroller(camera, cameraN, dolphinN, gpName, im);
+        ArrayList controllers = im.getControllers();
+        for (int i = 0; i < controllers.size(); i++){
+            Controller c = (Controller)controllers.get(i);
 
-        SceneNode dolphinTwoN = sm.getSceneNode("dolphinTwoENode");
-        SceneNode cameraTwoN = sm.getSceneNode("MainCamera2Node");
-        Camera camera2 = sm.getCamera("MainCamera2");
-        String gpName2 = im.getMouseName();
-        orbitController2 =
+        if (c.getType() == Controller.Type.GAMEPAD){
+            String gpName = c.getName();
+            SceneNode dolphinN = sm.getSceneNode("dolphinENode");
+            SceneNode cameraN = sm.getSceneNode("MainCameraNode");
+            Camera camera = sm.getCamera("MainCamera");
+            orbitController1 =
+                    new Camera3Pcontroller(camera, cameraN, dolphinN, gpName, im);
+        }
+
+        if (c.getType() == Controller.Type.MOUSE){
+            SceneNode dolphinTwoN = sm.getSceneNode("dolphinTwoENode");
+            SceneNode cameraTwoN = sm.getSceneNode("MainCamera2Node");
+            Camera camera2 = sm.getCamera("MainCamera2");
+            String gpName2 = c.getName();
+            orbitController2 =
                 new Camera3Pcontroller(camera2, cameraTwoN, dolphinTwoN, gpName2, im);
+            }
+        }
+
     }
 
     protected void setupInputs(){
@@ -352,50 +386,48 @@ public class myGame extends VariableFrameRateGame  implements
         elapsTimeSec = Math.round(elapsTime/1000.0f);
         elapsTimeStr = Integer.toString(elapsTimeSec);
         counterStr = Integer.toString(counter);
+        counterStrTwo = Integer.toString(counterTwo);
         im.update(elapsTime);
         checkDistance();
         checkDistanceTwo();
         orbitController1.updateCameraPosition();
         orbitController2.updateCameraPosition();
-        dispStr = hudContent("Time = " + elapsTimeSec +"  Visited Planets = " + counterStr + "   Muber Points = " + muberTotal );
+        dispStr = hudContent("Time = " + elapsTimeSec +"  Planets Teleported= " + counterStrTwo);
+        dispStr2 = hudContent("Time = " + elapsTimeSec +"  Planets Rotated = " + counterStr);
         rs.setHUD(dispStr, 13, 13);
-        rs.setHUD2(dispStr, 15, (rs.getRenderWindow().getViewport(0).getActualHeight() + 25));
+        rs.setHUD2(dispStr2, 15, (rs.getRenderWindow().getViewport(0).getActualHeight() + 25));
     }
     //==============================================================================================
 
     // ======== This will update the HUD when the player gets too far from the dolphin. ===============
     private String hudContent(String display){
         String content = display;
-        if(stop && getEngine().getSceneManager().getCamera("MainCamera").getMode() == 'n'){
-            content = "  Too far from dolphin, Press B(Controller) or SpaceBar(Keyboard)." ;
-        }else if (muberPoints != 0){
-            content = content + "     Nice drop off, you just got rated a " +  muberPoints + " out of 5!";
-        }
+        // Can be filled in later.
         return content;
     }
     //==========================================================================================
 
-    // ======== This will check the distant between the player and the Dolphin. ===============
-    public boolean dolphinDistanceLimit(){
-        boolean limit = true;
-        float distanceLimit = 3.0f;
-        float distanceX, distanceZ;
-        SceneNode dolphin = getEngine().getSceneManager().getSceneNode("dolphinENode");
-        Vector3 cameraPosition = getEngine().getSceneManager().getCamera("MainCamera").getPo();
-
-        distanceX = Math.abs(dolphin.getLocalPosition().x() - cameraPosition.x());
-        distanceZ = Math.abs(dolphin.getLocalPosition().z() - cameraPosition.z());
-
-        if (distanceX > distanceLimit && distanceZ > distanceLimit){
-            limit = false;
-            stop = true;
-        }else {
-            stop = false;
-        }
-
-        return limit;
-    }
-    //==========================================================================================
+//    // ======== This will check the distant between the player and the Dolphin. ===============
+//    public boolean dolphinDistanceLimit(){
+//        boolean limit = true;
+//        float distanceLimit = 3.0f;
+//        float distanceX, distanceZ;
+//        SceneNode dolphin = getEngine().getSceneManager().getSceneNode("dolphinENode");
+//        Vector3 cameraPosition = getEngine().getSceneManager().getCamera("MainCamera").getPo();
+//
+//        distanceX = Math.abs(dolphin.getLocalPosition().x() - cameraPosition.x());
+//        distanceZ = Math.abs(dolphin.getLocalPosition().z() - cameraPosition.z());
+//
+//        if (distanceX > distanceLimit && distanceZ > distanceLimit){
+//            limit = false;
+//            stop = true;
+//        }else {
+//            stop = false;
+//        }
+//
+//        return limit;
+//    }
+//    //==========================================================================================
 
     //======== This will check the distant between the player and the planetsa ================
     private void checkDistance(){
@@ -411,7 +443,7 @@ public class myGame extends VariableFrameRateGame  implements
                     distanceZ = Math.abs(dolphin.getLocalPosition().z() - planetPosition.z());
                     if(distanceX < distantLimit && distanceZ < distantLimit){
                         planetVisited[i] = planetAmount[i];
-                        //incrementCounter();
+                        incrementCounter();
                         RotationController rc = new RotationController(Vector3f.createUnitVectorY(), .02f);
                         rc.addNode(planetAmount[i]);
                         getEngine().getSceneManager().addController(rc);
@@ -435,7 +467,7 @@ public class myGame extends VariableFrameRateGame  implements
                     distanceZ = Math.abs(dolphin.getLocalPosition().z() - planetPosition.z());
                     if(distanceX < distantLimit && distanceZ < distantLimit){
                         planetVisitedTwo[i] = planetAmount[i];
-                        incrementCounter();
+                        incrementCounterTwo();
                         TeleportController tc = new TeleportController(getEngine().getSceneManager().getSceneNode("dolphinENode"));
                         tc.addNode(planetAmount[i]);
                         getEngine().getSceneManager().addController(tc);
@@ -466,10 +498,10 @@ public class myGame extends VariableFrameRateGame  implements
                 getGpuShaderProgram(GpuShaderProgram.Type.RENDERING));
 
         float[] vertices = new float[]{
-                -1.0f, -0.01f, 1.0f, 1.0f,  -0.01f, 1.0f, -1.0f,   -0.01f, -1.0f,
-                -1.0f,  -0.01f, -1.0f, 1.0f,   -0.01f, 1.0f, -1.0f,    -0.01f, 1.0f, //UF
-                1.0f,    -0.01f, -1.0f, -1.0f,   -0.01f, -1.0f, 1.0f,    -0.01f, 1.0f,
-                1.0f,    -0.01f, 1.0f, -1.0f,    -0.01f, -1.0f, 1.0f,    -0.01f, -1.0f //UR
+                -1.0f, -0.5f, 1.0f, 1.0f,  -0.5f, 1.0f, -1.0f,   -0.5f, -1.0f,
+                -1.0f,  -0.5f, -1.0f, 1.0f,   -0.5f, 1.0f, -1.0f,    -0.5f, 1.0f, //UF
+                1.0f,    -0.5f, -1.0f, -1.0f,   -0.5f, -1.0f, 1.0f,    -0.5f, 1.0f,
+                1.0f,    -0.5f, 1.0f, -1.0f,    -0.5f, -1.0f, 1.0f,    -0.5f, -1.0f //UR
         };
 
         float[] texcoords = new float[]{
@@ -520,13 +552,16 @@ public class myGame extends VariableFrameRateGame  implements
     public void incrementCounter() {
         counter++;
     }
+    public void incrementCounterTwo() {
+        counterTwo++;
+    }
 
     //============== Mouse Movement =====================================================
 
     private void initMouseMode(RenderSystem s, RenderWindow w) {
          rw = w;
          rs = (GL4RenderSystem) s;
-        Viewport v = rw.getViewport(1);
+        Viewport v = rw.getViewport(0);
         int left = rw.getLocationLeft();
         int top = rw.getLocationTop();
         int widt = v.getActualScissorWidth();
@@ -555,7 +590,7 @@ public class myGame extends VariableFrameRateGame  implements
     private void recenterMouse()
     {// use the robot to move the mouse to the center point.
 // Note that this generates one MouseEvent.
-        Viewport v = rw.getViewport(1);
+        Viewport v = rw.getViewport(0);
         int left = rw.getLocationLeft();
         int top = rw.getLocationTop();
         int widt = v.getActualScissorWidth();
@@ -594,7 +629,6 @@ public class myGame extends VariableFrameRateGame  implements
 
     @Override
     public void mouseMoved(com.jogamp.newt.event.MouseEvent e) {
-        System.out.println("HERRRRRRRRRRRRRRRRRRRRRRRRRRE");
 
         if (isRecentering &&
                 centerX == e.getX() && centerY == e.getY())
