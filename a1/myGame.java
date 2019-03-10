@@ -48,7 +48,7 @@ public class myGame extends VariableFrameRateGame  implements
     int elapsTimeSec, counter = 0, maxPlanets = 5, muberPoints = 0, muberTotal = 0, centerX = 0, centerY = 0;
     SceneNode nullNode;
 
-    private Camera3Pcontroller orbitController;
+    private Camera3Pcontroller orbitController1, orbitController2 ;
     private Robot robot; // these are additional variable declarations
     private Canvas canvas;
     private RenderWindow rw;
@@ -149,10 +149,6 @@ public class myGame extends VariableFrameRateGame  implements
         dolphinN.moveBackward(2.0f);
         dolphinN.attachObject(dolphinE);
 
-//        SceneNode dolphinCN = dolphinN.createChildSceneNode("dolphinCameraNode");
-//        dolphinCN.setLocalPosition(0.0f, 0.5f, -0.3f);
-//        dolphinCN.attachObject(getEngine().getSceneManager().getCamera("MainCamera"));
-
         /*=======================================================================*/
 
         //========== DOLPHIN SECONED PLAYER AND CAMERA =====================================//
@@ -163,10 +159,6 @@ public class myGame extends VariableFrameRateGame  implements
         SceneNode dolphinTwoN = sm.getRootSceneNode().createChildSceneNode("dolphinTwoENode");
         dolphinTwoN.moveBackward(2.0f);
         dolphinTwoN.attachObject(dolphinTwoE);
-//
-//        SceneNode dolphinTwoCN = dolphinTwoN.createChildSceneNode("dolphinCameraTwoNode");
-//        dolphinTwoCN.setLocalPosition(0.0f, 0.5f, -0.3f);
-//        dolphinTwoCN.attachObject(getEngine().getSceneManager().getCamera("MainCamera2"));
 
         //=======================================================================//
 
@@ -241,14 +233,14 @@ public class myGame extends VariableFrameRateGame  implements
         SceneNode dolphinN = sm.getSceneNode("dolphinENode");
         SceneNode cameraN = sm.getSceneNode("MainCameraNode");
         Camera camera = sm.getCamera("MainCamera");
-        orbitController =
+        orbitController1 =
                 new Camera3Pcontroller(camera, cameraN, dolphinN, gpName, im);
 
         SceneNode dolphinTwoN = sm.getSceneNode("dolphinTwoENode");
         SceneNode cameraTwoN = sm.getSceneNode("MainCamera2Node");
         Camera camera2 = sm.getCamera("MainCamera2");
         String gpName2 = im.getMouseName();
-        orbitController =
+        orbitController2 =
                 new Camera3Pcontroller(camera2, cameraTwoN, dolphinTwoN, gpName2, im);
     }
 
@@ -378,8 +370,9 @@ public class myGame extends VariableFrameRateGame  implements
         elapsTimeStr = Integer.toString(elapsTimeSec);
         counterStr = Integer.toString(counter);
         im.update(elapsTime);
-        //checkDistance();
-        orbitController.updateCameraPosition();
+        checkDistance();
+        orbitController1.updateCameraPosition();
+        orbitController2.updateCameraPosition();
         dispStr = hudContent("Time = " + elapsTimeSec +"  Visited Planets = " + counterStr + "   Muber Points = " + muberTotal );
         rs.setHUD(dispStr, 13, 13);
         rs.setHUD2(dispStr, 15, (rs.getRenderWindow().getViewport(0).getActualHeight() + 25));
@@ -424,19 +417,24 @@ public class myGame extends VariableFrameRateGame  implements
     private void checkDistance(){
         if(getEngine().getSceneManager().getCamera("MainCamera").getMode() == 'n'){
             Vector3 planetPosition;
-            float distanceX, distanceZ, distantLimit = 1.5f;
-            Camera camera = getEngine().getSceneManager().getCamera("MainCamera");
+            float distanceX, distanceZ,distanceXTwo,distanceZTwo,distantLimit = 1.5f;
+            SceneNode dolphin = getEngine().getSceneManager().getSceneNode("dolphinENode");
+            SceneNode dolphinTwo = getEngine().getSceneManager().getSceneNode("dolphinTwoENode");
 
             for (int i = 0; i < maxPlanets; i++){
                 planetPosition = planetAmount[i].getLocalPosition();
                 if (!(visitYet(planetAmount[i]))){
-                    distanceX = Math.abs(camera.getPo().x() - planetPosition.x());
-                    distanceZ = Math.abs(camera.getPo().z() - planetPosition.z());
+                    distanceX = Math.abs(dolphin.getLocalPosition().x() - planetPosition.x());
+                    distanceZ = Math.abs(dolphin.getLocalPosition().z() - planetPosition.z());
+                    distanceXTwo = Math.abs(dolphinTwo.getLocalPosition().x() - planetPosition.x());
+                    distanceZTwo = Math.abs(dolphinTwo.getLocalPosition().z() - planetPosition.z());
                     if(distanceX < distantLimit && distanceZ < distantLimit){
                         planetVisited[i] = planetAmount[i];
                         incrementCounter();
                         }
-
+                    else if(distanceXTwo < distantLimit && distanceZTwo < distantLimit) {
+                        incrementCounter();
+                        }
                     }
                 }
             }
@@ -511,21 +509,6 @@ public class myGame extends VariableFrameRateGame  implements
         return xBar;
     }
     //==========================================================================================
-
-    private void calculatePoints(float time){
-        float currentTime = time;
-        if(currentTime - timeCounter <= 10){
-            muberPoints = 5;
-            muberTotal = muberPoints + muberTotal;
-        } else if (currentTime - timeCounter <= 20){
-            muberPoints = 3;
-            muberTotal = muberPoints + muberTotal;
-        } else if (currentTime - timeCounter > 20){
-            muberPoints = 1;
-            muberTotal = muberPoints + muberTotal;
-        }
-
-    }
 
     //=============== Game Logic Ends ====================================================
 
